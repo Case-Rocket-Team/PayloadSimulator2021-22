@@ -1,7 +1,6 @@
 import numpy as np
 import math
 
-# heading(azimuth,bank angle, glide angle)
 _gravity = 9.81
 
 
@@ -19,7 +18,7 @@ def simulate_flight(mass, pos, vel, app_accel, timestep, air_density, wind_speed
 
     Returns:
             pos (Vec3): the position after eulers method is applied.
-			heading (Vec3): the heading after eulers method is applied in the format [azimuth, bank_angle, glide_angle]
+                        heading (Vec3): the heading after eulers method is applied in the format [azimuth, bank_angle, glide_angle]
             vel (Vec3): the vel after eulers method is applied.
             accel (Vec3): the total acceleration after applying wind, gravity, lift and drag.
     """
@@ -129,16 +128,10 @@ def calc_heading(current_heading, glide_angle_roc, azimuth_roc, dt):
         new_heading (Vec3): array containing the new heading of the craft in the format [azimuth, bank_angle, glide_angle]
     """
 
-	# find the actual amount the angle changes by multiplying rate by time
+    # find the actual amount the angle changes by multiplying rate by time
     glide_angle_change = glide_angle_roc * dt
     azimuth_angle_change = azimuth_angle_roc * dt
-	# we don't update bank_angle, just the other two
+    # we don't update bank_angle, just the other two
     heading_change = np.array([azimuth_angle_change, 0, glide_angle_change])
 
     return current_heading + heading_change
-
-    # glide angle - fixed
-    # bank angle - input, sigma in formula
-    # azimuth - direction from north, CW+
-    # positive x north
-    # heading return as [azimuth, bank, glide] angles
