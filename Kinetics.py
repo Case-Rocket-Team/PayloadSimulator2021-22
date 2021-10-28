@@ -1,3 +1,8 @@
+import numpy as np
+import math
+
+# heading(azimuth,bank angle, glide angle)
+gravity = 9.81
 
 def simulate_flight(
 	mass, pos, vel, app_accel,
@@ -22,3 +27,22 @@ def simulate_flight(
 	
 	return pos, vel, accel
 
+# Calculates lift force on the vehicle
+def calcLiftForce(lift_coefficient, air_density, velocity, vehicle_area):
+	# L=\frac{1}{2}*C_{L}*\rho*V^{_{2}}*A
+	return 0.5 * lift_coefficient * air_density * velocity ** 2 * vehicle_area
+
+# Calculates drag force on the vehicle
+def calcDragForce(drag_coefficient, air_density, velocity, vehicle_area):
+	# L=\frac{1}{2}*C_{D}*\rho*V^{_{2}}*A
+	return 0.5 * drag_coefficient * air_density * velocity ** 2 * vehicle_area
+
+# Calculate rate of change of the glide angle
+def calcRocGlideAngle(lift_force, heading, mass, velocity):
+	# \dot{\gamma }=\frac{(L*cos\sigma -W*cos\gamma )}{mV}
+	return ((lift_force * math.cos(heading[1]) - (mass * gravity * math.cos(heading[2])))) / (mass * velocity)
+
+# Calculate rate of change of the azimuth angle
+def calcRocAzimuth(lift_force, heading, mass, velocity):
+	# \frac{L*sin\sigma }{mVcos\gamma }
+	return lift_force * math.sin(heading[1]) / (mass * velocity * math.cos(heading[2]))
