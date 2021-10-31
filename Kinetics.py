@@ -1,41 +1,67 @@
 import numpy as np
 import math
 
+# TODO: pull these from JSON
 _gravity = 9.81
+_lift_coefficient = 0.449
+_drag_coefficient = 0.162
+_span = 1.016
+_chord = 0.508
+_area = _span * _chord
+_wind_speed_x = 0.0
+_wind_speed_y = 0.0
+_air_density = 1.225
 
 
-def simulate_flight(mass, pos, vel, app_accel, timestep, air_density, wind_speed):
+
+def simulate_flight(mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed):
     """calculates kinetics of the system, using Eulers method, for a given timestep with applied forces.
 
     Args:
-            mass (float): the mass of the payload
-            pos (Vec3): an array containing the absolute cartesian position of the craft.
-            vel (Vec3): an array containing the caretesian velocity of the craft.
-            app_accel (Vec3): the applied acceleration (sigmadot).
-            timestep (float): the size of the timestep for eulers method.
-            air_density (function): a function that returns the air density at a point.
-            wind_speed (function): a function that returns the wind velocity at a point.
+        mass (float): the mass of the payload
+        pos (Vec3): an array containing the absolute cartesian position of the craft.
+        vel (Vec3): an array containing the caretesian velocity of the craft.
+        vel_mag (float): the overall magitude of the velocity of the craft.
+        heading (Vec3): an array containing the heading of the craft in the format [azimuth, bank_angle, glide_angle]
+        app_accel (Vec3): the applied acceleration (sigmadot).
+        timestep (float): the size of the timestep for eulers method.
+        air_density (function): a function that returns the air density at a point.
+        wind_speed (function): a function that returns the wind velocity at a point.
 
     Returns:
-            pos (Vec3): the position after eulers method is applied.
-                        heading (Vec3): the heading after eulers method is applied in the format [azimuth, bank_angle, glide_angle]
-            vel (Vec3): the vel after eulers method is applied.
-            accel (Vec3): the total acceleration after applying wind, gravity, lift and drag.
+        pos (Vec3): the position after eulers method is applied.
+        heading (Vec3): the heading after eulers method is applied in the format [azimuth, bank_angle, glide_angle]
+        vel (Vec3): the vel after eulers method is applied.
+        vel_mag (float): the overall magitude of the velocity after eulers method is applied.
+        accel (Vec3): the total acceleration after applying wind, gravity, lift and drag.
     """
+    air_density = air_density(pos) # TODO: get from jenny
+    drag = calc_drag_force(_drag_coefficient, air_density, vel_mag, _area)
+    lift = calc_lift_force(_lift_coefficient, air_density, vel_mag, _area)
 
-    return pos, heading, vel, accel
+    glide_angle_roc = calc_roc_glide_angle(lift, heading, mass, vel_mag)
+    azimuth_angle_roc = calc_roc_azimuth(lift, heading, mass, vel_mag)
+
+    wind_speed_x, wind_speed_y = wind_speed(pos) # TODO: actually have a real wind_speed function
+    heading = calc_heading(heading, glide_angle_roc, azimuth_angle_roc, timestep)
+    new_vel, vel_mag = calc_velocity(vel_mag, heading[2], heading[0], drag, mass, timestep)
+    pos = calc_position(pos, vel, wind_speed_x, wind_speed_y, timestep)
+
+    accel = (new_vel - vel) / timestep
+
+    return pos, heading, new_vel, vel_mag, accel
 
 
 # Calculates lift force on the vehicle
-def calc_lift_force(lift_coefficient, air_density, velocity, vehicle_area):
+def calc_lift_force(_lift_coefficient, air_density, velocity, vehicle_area):
     # L=\frac{1}{2}*C_{L}*\rho*V^{_{2}}*A
-    return 0.5 * lift_coefficient * air_density * velocity ** 2 * vehicle_area
+    return 0.5 * _lift_coefficient * air_density * velocity ** 2 * vehicle_area
 
 
 # Calculates drag force on the vehicle
-def calc_drag_force(drag_coefficient, air_density, velocity, vehicle_area):
+def calc_drag_force(_drag_coefficient, air_density, velocity, vehicle_area):
     # L=\frac{1}{2}*C_{D}*\rho*V^{_{2}}*A
-    return 0.5 * drag_coefficient * air_density * velocity ** 2 * vehicle_area
+    return 0.5 * _drag_coefficient * air_density * velocity ** 2 * vehicle_area
 
 
 # Calculate rate of change of the glide angle
@@ -50,6 +76,14 @@ def calc_roc_glide_angle(lift_force, heading, mass, velocity):
 def calc_roc_azimuth(lift_force, heading, mass, velocity):
     # \dot{\psi} = \frac{L*sin\sigma }{mVcos\gamma}
     return lift_force * math.sin(heading[1]) / (mass * velocity * math.cos(heading[2]))
+
+# placeholder that just gives the same windspeed over and over
+def get_wind_speed(pos):
+    return _wind_speed_x, _wind_speed_y
+
+# placeholder that just gives the same air density over and over
+def get_air_density(pos):
+    return _air_density
 
 
 def calc_velocity(current_velocity, glide_angle, azimuth_angle, drag_force, mass, dt):
@@ -102,11 +136,11 @@ def calc_position(current_pos, current_velocity, wind_vel_x, wind_vel_y, dt):
 
     # Calculate dx, dy, dz
     # dx = (V_x + w_x) \cdot dt
-    dx = (current_velocity(1) + wind_vel_x) * dt
+    dx = (current_velocity[0] + wind_vel_x) * dt
     # dy = (V_y + w_y) \cdot dt
-    dy = (current_velocity(2) + wind_vel_y) * dt
+    dy = (current_velocity[1] + wind_vel_y) * dt
     # dz = V_z \cdot dt
-    dz = current_velocity(3) * dt
+    dz = current_velocity[2] * dt
     pos_diff = np.array([dx, dy, dz])
 
     pos = current_pos + pos_diff
@@ -130,8 +164,8 @@ def calc_heading(current_heading, glide_angle_roc, azimuth_roc, dt):
 
     # find the actual amount the angle changes by multiplying rate by time
     glide_angle_change = glide_angle_roc * dt
-    azimuth_angle_change = azimuth_angle_roc * dt
+    azimuth_angle_change = azimuth_roc * dt
     # we don't update bank_angle, just the other two
-    heading_change = np.array([azimuth_angle_change, 0, glide_angle_change])
+    heading_change = np.array([azimuth_angle_change, 0.0, glide_angle_change])
 
     return current_heading + heading_change
