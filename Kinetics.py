@@ -13,8 +13,9 @@ _wind_speed_y = 0.0
 _air_density = 1.225
 
 
-
-def simulate_flight(mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed):
+def simulate_flight(
+    mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed
+):
     """calculates kinetics of the system, using Eulers method, for a given timestep with applied forces.
 
     Args:
@@ -35,16 +36,20 @@ def simulate_flight(mass, pos, vel, vel_mag, heading, app_accel, timestep, air_d
         vel_mag (float): the overall magitude of the velocity after eulers method is applied.
         accel (Vec3): the total acceleration after applying wind, gravity, lift and drag.
     """
-    air_density = air_density(pos) # TODO: get from jenny
+    air_density = air_density(pos)  # TODO: get from jenny
     drag = calc_drag_force(_drag_coefficient, air_density, vel_mag, _area)
     lift = calc_lift_force(_lift_coefficient, air_density, vel_mag, _area)
 
     glide_angle_roc = calc_roc_glide_angle(lift, heading, mass, vel_mag)
     azimuth_angle_roc = calc_roc_azimuth(lift, heading, mass, vel_mag)
 
-    wind_speed_x, wind_speed_y = wind_speed(pos) # TODO: actually have a real wind_speed function
+    wind_speed_x, wind_speed_y = wind_speed(
+        pos
+    )  # TODO: actually have a real wind_speed function
     heading = calc_heading(heading, glide_angle_roc, azimuth_angle_roc, timestep)
-    new_vel, vel_mag = calc_velocity(vel_mag, heading[2], heading[0], drag, mass, timestep)
+    new_vel, vel_mag = calc_velocity(
+        vel_mag, heading[2], heading[0], drag, mass, timestep
+    )
     pos = calc_position(pos, vel, wind_speed_x, wind_speed_y, timestep)
 
     accel = (new_vel - vel) / timestep
@@ -77,9 +82,11 @@ def calc_roc_azimuth(lift_force, heading, mass, velocity):
     # \dot{\psi} = \frac{L*sin\sigma }{mVcos\gamma}
     return lift_force * math.sin(heading[1]) / (mass * velocity * math.cos(heading[2]))
 
+
 # placeholder that just gives the same windspeed over and over
 def get_wind_speed(pos):
     return _wind_speed_x, _wind_speed_y
+
 
 # placeholder that just gives the same air density over and over
 def get_air_density(pos):
