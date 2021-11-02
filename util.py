@@ -36,12 +36,12 @@ def graph_data(sim_kinetics, dt, noise_data, pred_kinetics, path, **graph_params
 	x_pos = []
 	y_pos = []
 	z_pos = []
-	for n in range(0, len(sim_kinetics)):
-		x_pos.append(sim_kinetics[n][0])
-		y_pos.append(sim_kinetics[n][1])
-		z_pos.append(sim_kinetics[n][2])
+	for n in range(0, len(sim_kinetics[0])):
+		x_pos.append(sim_kinetics[0][n][0])
+		y_pos.append(sim_kinetics[0][n][1])
+		z_pos.append(sim_kinetics[0][n][2])
 
-	for i in range(0, len(sim_kinetics)):
+	for i in range(0, len(sim_kinetics[0])):
 		time.append(time[i] + dt)
 
 	plt.plot(x_pos, z_pos)

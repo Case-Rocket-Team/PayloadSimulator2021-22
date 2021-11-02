@@ -12,12 +12,12 @@ applied_acceleration = np.zeros(3)
 _mass = 4.249
 _timestep = .1
 
-sim_kinematics = []
+sim_kinematics = [[],[],[]]
 
 while pos[2] > 0:
     pos, heading, vel, vel_mag, accel = simulate_flight(_mass, pos, vel, vel_mag, heading, applied_acceleration, _timestep, get_air_density, get_wind_speed)
     
-    sim_kinematics.append(pos)
+    sim_kinematics[0].append(pos)
 
     '''
     print("\n\npos")
@@ -29,5 +29,4 @@ while pos[2] > 0:
     print("accel")
     print(accel)
     '''
-
 graph_data(sim_kinematics, _timestep, 0, 0, 0)
