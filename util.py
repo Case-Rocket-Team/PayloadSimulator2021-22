@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
 
 def fuzzifier(pos, accel,
 	gps_noise=0.01,imu_noise=0.01,altimeter_noise=0.01):
@@ -19,7 +22,7 @@ def fuzzifier(pos, accel,
 	
 	return gps, imu, pressure
 
-def graph_data(sim_kinetics, noise_data, pred_kinetics, path, **graph_params):
+def graph_data(sim_kinetics, dt, noise_data, pred_kinetics, path, **graph_params):
 	"""creates a series of graphs for important data
 		#TODO: decide what graphs to show
 
@@ -29,6 +32,38 @@ def graph_data(sim_kinetics, noise_data, pred_kinetics, path, **graph_params):
 		pred_kinetics (Vec3[][]): the simulated kinetics (pos,vel,accel) for the course of the simulation.
 		path (Vec3): the set of waypoints used throughout the simulation.
 	"""
+	time = [0]
+	x_pos = []
+	y_pos = []
+	z_pos = []
+	for n in range(0, len(sim_kinetics[0])):
+		x_pos.append(sim_kinetics[0][n][0])
+		y_pos.append(sim_kinetics[0][n][1])
+		z_pos.append(sim_kinetics[0][n][2])
+
+	for i in range(0, len(sim_kinetics[0])):
+		time.append(time[i] + dt)
+
+	plt.plot(x_pos, z_pos)
+	plt.xlabel("X Position (m)")
+	plt.ylabel("Z Position (m)")
+	plt.title("Z vs X Position")
+
+	plt.figure()
+	plt.plot(x_pos, y_pos)
+	plt.xlabel("X Position (m)")
+	plt.ylabel("Y Position (m)")
+	plt.title("Y vs X Position")
+
+	fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
+	ax.plot(x_pos, y_pos, z_pos)
+	ax.set_title("Parafoil Path with a P Controller")
+	ax.set_xlabel("Downwind X (m)")
+	ax.set_ylabel("Crosswind Y (m)")
+	ax.set_zlabel("Altitude Z (m)")
+
+	plt.show()
+
 
 def servo_math(accel_hat,max_turn):
 	"""calculates servo movement knowing desired acceleration direction.
