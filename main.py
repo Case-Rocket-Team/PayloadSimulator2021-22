@@ -1,5 +1,4 @@
 from Kinetics import simulate_flight, get_wind_speed, get_air_density
-#from icecream import ic
 import numpy as np
 from util import graph_data
 
@@ -19,14 +18,4 @@ while pos[2] > 0:
     
     sim_kinematics[0].append(pos)
 
-    '''
-    print("\n\npos")
-    print(pos)
-    print("heading")
-    print(heading)
-    print("vel")
-    print(vel)
-    print("accel")
-    print(accel)
-    '''
 graph_data(sim_kinematics, _timestep, 0, 0, 0)
