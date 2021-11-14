@@ -11,10 +11,11 @@ _area = _span * _chord
 _wind_speed_x = 0.0
 _wind_speed_y = 0.0
 _air_density = 1.225
+_ground_wind_speed = 5
 
 
 def simulate_flight(
-    mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed
+    mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed_func, previous_wind_speeds
 ):
     """calculates kinetics of the system, using Eulers method, for a given timestep with applied forces.
 
@@ -27,7 +28,8 @@ def simulate_flight(
         app_accel (Vec3): the applied acceleration (sigmadot).
         timestep (float): the size of the timestep for eulers method.
         air_density (function): a function that returns the air density at a point.
-        wind_speed (function): a function that returns the wind velocity at a point.
+        wind_speed_func (function): a function that returns the wind velocity at a point.
+        previous_wind_speeds (Vec2): the wind velocity in x and y at the last position
 
     Returns:
         pos (Vec3): the position after eulers method is applied.
@@ -43,9 +45,10 @@ def simulate_flight(
     glide_angle_roc = calc_roc_glide_angle(lift, heading, mass, vel_mag)
     azimuth_angle_roc = calc_roc_azimuth(lift, heading, mass, vel_mag)
 
-    wind_speed_x, wind_speed_y = wind_speed(
-        pos
-    )  # TODO: actually have a real wind_speed function
+    previous_wind_speeds = wind_speed_func(
+        pos, _ground_wind_speed, previous_wind_speeds
+    )
+    wind_speed_x, wind_speed_y = previous_wind_speeds
     heading = calc_heading(heading, glide_angle_roc, azimuth_angle_roc, timestep)
     new_vel, vel_mag = calc_velocity(
         vel_mag, heading[2], heading[0], drag, mass, timestep
@@ -54,7 +57,7 @@ def simulate_flight(
 
     accel = (new_vel - vel) / timestep
 
-    return pos, heading, new_vel, vel_mag, accel
+    return pos, heading, new_vel, vel_mag, accel, previous_wind_speeds
 
 
 # Calculates lift force on the vehicle
@@ -81,11 +84,6 @@ def calc_roc_glide_angle(lift_force, heading, mass, velocity):
 def calc_roc_azimuth(lift_force, heading, mass, velocity):
     # \dot{\psi} = \frac{L*sin\sigma }{mVcos\gamma}
     return lift_force * math.sin(heading[1]) / (mass * velocity * math.cos(heading[2]))
-
-
-# placeholder that just gives the same windspeed over and over
-def get_wind_speed(pos):
-    return _wind_speed_x, _wind_speed_y
 
 
 # placeholder that just gives the same air density over and over
@@ -177,7 +175,7 @@ def calc_heading(current_heading, glide_angle_roc, azimuth_roc, dt):
 
     return current_heading + heading_change
 
-def calc_wind(current_pos, ground_wind_speed, previous_wind_speed=None, alpha=0.143):
+def get_wind_speed(current_pos, ground_wind_speed, previous_wind_speeds=None, alpha=0.143):
     """
     Calculates the wind speed at a given height using the formula found here: https://en.wikipedia.org/wiki/Wind_profile_power_law
     (same as here: https://websites.pmc.ucsc.edu/~jnoble/wind/extrap/)
@@ -194,12 +192,22 @@ def calc_wind(current_pos, ground_wind_speed, previous_wind_speed=None, alpha=0.
     # u = u_r (\frac{z}{z_r})^{\alpha}
     calculated_speed = ground_wind_speed * ((current_pos[2] / 5) ** alpha)
     # on the first time we still need a previous wind speed that isn't exactly on the line
-    if previous_wind_speed == None:
-        previous_wind_speed = calculated_speed * 1.001
+    if previous_wind_speeds == None:
+        previous_wind_speed_x = calculated_speed * 1.001
+        previous_wind_speed_y = previous_wind_speed_x
+    else:
+        previous_wind_speed_x = previous_wind_speeds[0]
+        previous_wind_speed_y = previous_wind_speeds[1]
 
     # sample from a normal distribution where...
-    sigma = abs(calculated_speed - previous_wind_speed) # ... the stddev is the difference between the last two values and...
-    mean = abs(calculated_speed + previous_wind_speed) / 2.0 # ...the mean is the average of the last two values
-    gusted_wind_speed = np.random.normal(mean, sigma, 1)
+    sigma_x = abs(calculated_speed - previous_wind_speed_x) # ... the stddev is the difference between the last two values and...
+    mean_x = abs(calculated_speed + previous_wind_speed_x) / 2.0 # ...the mean is the average of the last two values
+    gusted_wind_speed_x = np.random.normal(mean_x, sigma_x, 1)[0]
+
+    sigma_y = abs(calculated_speed - previous_wind_speed_y) # ... the stddev is the difference between the last two values and...
+    mean_y = abs(calculated_speed + previous_wind_speed_y) / 2.0 # ...the mean is the average of the last two values
+    gusted_wind_speed_y = np.random.normal(mean_y, sigma_y, 1)[0]
+
     
-    return gusted_wind_speed[0]
+    
+    return (gusted_wind_speed_x, gusted_wind_speed_y)
