@@ -176,3 +176,30 @@ def calc_heading(current_heading, glide_angle_roc, azimuth_roc, dt):
     heading_change = np.array([azimuth_angle_change, 0.0, glide_angle_change])
 
     return current_heading + heading_change
+
+def calc_wind(current_pos, ground_wind_speed, previous_wind_speed=None, alpha=0.143):
+    """
+    Calculates the wind speed at a given height using the formula found here: https://en.wikipedia.org/wiki/Wind_profile_power_law
+    (same as here: https://websites.pmc.ucsc.edu/~jnoble/wind/extrap/)
+
+    Args:
+        current_pos (Vec3): array with current position of the craft
+        ground_wind_speed (float): wind speed 5 meters off the ground
+        alpha (float): the wind shear exponent
+    
+    Output:
+        wind_given_height (float): wind speed for this position
+    """
+
+    # u = u_r (\frac{z}{z_r})^{\alpha}
+    calculated_speed = ground_wind_speed * ((current_pos[2] / 5) ** alpha)
+    # on the first time we still need a previous wind speed that isn't exactly on the line
+    if previous_wind_speed == None:
+        previous_wind_speed = calculated_speed * 1.001
+
+    # sample from a normal distribution where...
+    sigma = abs(calculated_speed - previous_wind_speed) # ... the stddev is the difference between the last two values and...
+    mean = abs(calculated_speed + previous_wind_speed) / 2.0 # ...the mean is the average of the last two values
+    gusted_wind_speed = np.random.normal(mean, sigma, 1)
+    
+    return gusted_wind_speed[0]
