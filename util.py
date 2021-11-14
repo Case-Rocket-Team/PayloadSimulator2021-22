@@ -1,9 +1,26 @@
 import matplotlib.pyplot as plt
+from random import random
+from math import pi, exp
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
+'''
+Kyler | 10/26/21 | Began writing fuzzifier
+'''
+
+# Todo: update as a geoid
+def distance_to_degrees(distance):
+	# note: 6371000m is the radius of the earth
+	return (distance * 360) / (2 * pi * 6371000)
+
+
+def altitude_to_pressure(altitude):
+	# https://math24.net/barometric-formula.html
+	return 101325 * exp(- (0.02896 * 9.8) / (8.3143 * 288.15))
+
+
 def fuzzifier(pos, accel,
-	gps_noise=0.01,imu_noise=0.01,altimeter_noise=0.01):
+			  gps_noise=0.01, imu_noise=0.01, altimeter_noise=0.01):
 	"""simulates sensor output by adding noise and formatting into string.
 
 	Args:
@@ -12,14 +29,37 @@ def fuzzifier(pos, accel,
 		gps_noise (float, optional): The gps noise to apply. Defaults to 0.01.
 		imu_noise (float, optional): the imu noise to apply. Defaults to 0.01.
 		altimeter_noise (float, optional): the altimeter noise to apply. Defaults to 0.01.
+		pos (Vec3): an array containing the absolute cartesian position of the craft in meters
+		accel (Vec3): an array containing the cartesian acceleration vector of the craft in meters / second^2
+		gps_noise (float, optional): The gps noise to apply. Defaults to 0.01, or 1%.
+		imu_noise (float, optional): the imu noise to apply. Defaults to 0.01, or 1%.
+		altimeter_noise (float, optional): the altimeter noise to apply. Defaults to 0.01, or 1%.
 
 	Returns:
 		gps: the gps longitude/latitude
 		imu: the imu acceleration
 		pressure: the altimeter pressure
 	"""
-	
-	
+
+	"""calculating GPS"""
+	# long, lat of Ben's house
+	gps_reference = [40.897800, -81.713250]
+	gps = gps_reference + distance_to_degrees(pos)
+
+	gps_error = gps_noise * (random() * 2 - 1)
+	gps = gps * (1 + gps_error)
+
+	"""calculating imu"""
+	# Creates error for a value -1 < error < 1
+	imu_error = imu_noise * (random() * 2 - 1)
+	imu = accel * (1 + imu_error)
+
+	"""calculating pressure"""
+	altitude_error = altimeter_noise * (random() * 2 - 1)
+	altitude = pos[2] * (1 + altitude_error)
+
+	pressure = altitude_to_pressure(altitude)
+
 	return gps, imu, pressure
 
 def graph_data(sim_kinetics, dt, noise_data, pred_kinetics, path, **graph_params):
