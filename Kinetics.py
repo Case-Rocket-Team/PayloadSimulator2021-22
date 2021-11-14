@@ -11,7 +11,8 @@ _area = _span * _chord
 _wind_speed_x = 0.0
 _wind_speed_y = 0.0
 _air_density = 1.225
-_ground_wind_speed = 5
+_ground_wind_speed_x = -5
+_ground_wind_speed_y = 1
 
 
 def simulate_flight(
@@ -46,7 +47,7 @@ def simulate_flight(
     azimuth_angle_roc = calc_roc_azimuth(lift, heading, mass, vel_mag)
 
     previous_wind_speeds = wind_speed_func(
-        pos, _ground_wind_speed, previous_wind_speeds
+        pos, _ground_wind_speed_x, _ground_wind_speed_y, previous_wind_speeds
     )
     wind_speed_x, wind_speed_y = previous_wind_speeds
     heading = calc_heading(heading, glide_angle_roc, azimuth_angle_roc, timestep)
@@ -175,7 +176,7 @@ def calc_heading(current_heading, glide_angle_roc, azimuth_roc, dt):
 
     return current_heading + heading_change
 
-def get_wind_speed(current_pos, ground_wind_speed, previous_wind_speeds=None, alpha=0.143):
+def get_wind_speed(current_pos, ground_wind_speed_x, ground_wind_speed_y, previous_wind_speeds=None, alpha=0.143):
     """
     Calculates the wind speed at a given height using the formula found here: https://en.wikipedia.org/wiki/Wind_profile_power_law
     (same as here: https://websites.pmc.ucsc.edu/~jnoble/wind/extrap/)
@@ -190,24 +191,26 @@ def get_wind_speed(current_pos, ground_wind_speed, previous_wind_speeds=None, al
     """
 
     # u = u_r (\frac{z}{z_r})^{\alpha}
-    calculated_speed = ground_wind_speed * ((current_pos[2] / 5) ** alpha)
+    calculated_speed_x = ground_wind_speed_x * ((current_pos[2] / 5) ** alpha)
+    calculated_speed_y = ground_wind_speed_y * ((current_pos[2] / 5) ** alpha)
     # on the first time we still need a previous wind speed that isn't exactly on the line
     if previous_wind_speeds == None:
-        previous_wind_speed_x = calculated_speed * 1.001
-        previous_wind_speed_y = previous_wind_speed_x
+        previous_wind_speed_x = calculated_speed_x * 1.001
+        previous_wind_speed_y = calculated_speed_y * 1.001
     else:
         previous_wind_speed_x = previous_wind_speeds[0]
         previous_wind_speed_y = previous_wind_speeds[1]
 
     # sample from a normal distribution where...
-    sigma_x = abs(calculated_speed - previous_wind_speed_x) # ... the stddev is the difference between the last two values and...
-    mean_x = abs(calculated_speed + previous_wind_speed_x) / 2.0 # ...the mean is the average of the last two values
+    sigma_x = abs(calculated_speed_x - previous_wind_speed_x) # ... the stddev is the difference between the last two values and...
+    mean_x = calculated_speed_x + previous_wind_speed_x / 2.0 # ...the mean is the average of the last two values
     gusted_wind_speed_x = np.random.normal(mean_x, sigma_x, 1)[0]
 
-    sigma_y = abs(calculated_speed - previous_wind_speed_y) # ... the stddev is the difference between the last two values and...
-    mean_y = abs(calculated_speed + previous_wind_speed_y) / 2.0 # ...the mean is the average of the last two values
+    sigma_y = abs(calculated_speed_y - previous_wind_speed_y) # ... the stddev is the difference between the last two values and...
+    mean_y = (calculated_speed_y + previous_wind_speed_y) / 2.0 # ...the mean is the average of the last two values
     gusted_wind_speed_y = np.random.normal(mean_y, sigma_y, 1)[0]
 
-    
-    
     return (gusted_wind_speed_x, gusted_wind_speed_y)
+
+def get_zero_wind(current_pos, ground_wind_speed, previous_wind_speeds=None):
+    return(0, 0)
