@@ -1,5 +1,7 @@
 import numpy as np
 import math
+import json
+
 
 # TODO: pull these from JSON
 _gravity = 9.81
@@ -13,9 +15,7 @@ _wind_speed_y = 0.0
 _air_density = 1.225
 
 
-def simulate_flight(
-    mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed
-):
+def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed ):
     """calculates kinetics of the system, using Eulers method, for a given timestep with applied forces.
 
     Args:
