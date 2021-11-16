@@ -78,3 +78,19 @@ def servo_math(accel_hat,max_turn):
 	"""
 
 	return sigma_dot
+
+
+def exp_moving_avg(x_current, decay_rate, weight_sum, weight_count):
+	weight_sum = x_current + (1 - decay_rate) * weight_sum
+	weight_count = 1 + (1 - decay_rate) * weight_count
+	return weight_sum, weight_count
+
+
+def exp_run_avg(acc,decay_rate):
+	ema = []
+	sum_prev = 0
+	count_prev = 0
+	for i in range(0, len(acc)):
+		sum_prev, count_prev = exp_moving_avg(acc[i], decay_rate, sum_prev, count_prev)
+		ema.append(sum_prev/count_prev)
+	return ema
