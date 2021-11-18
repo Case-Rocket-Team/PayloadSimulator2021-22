@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+import math
+
+_gravity = 9.81
 
 def fuzzifier(pos, accel,
 	gps_noise=0.01,imu_noise=0.01,altimeter_noise=0.01):
@@ -65,16 +68,27 @@ def graph_data(sim_kinetics, dt, noise_data, pred_kinetics, path, **graph_params
 	plt.show()
 
 
-def servo_math(accel_hat,max_turn):
+def servo_math(heading, max_turn):
 	"""calculates servo movement knowing desired acceleration direction.
 		Note: for this sim, calculate the magnitude of acceleration the craft can take
 
 	Args:
-		accel_hat (Vec3): the unit acceleration
+		heading (Vec3): an array containing the heading of the craft in the format [azimuth, bank_angle, glide_angle]
 		max_turn (float): the maximum turning radius
 
 	Returns:
-		sigma_dot: the applied acceleration
+		servo_angle: the applied acceleration
 	"""
 
-	return sigma_dot
+	return servo_angle
+
+def convert_bank_to_deflect(heading, vel, span):
+	vel_mag = math.sqrt(vel[0] ** 2 + vel[1] ** 2 + vel[2] ** 2)
+	turn_rate = math.sin(heading[1]) * _gravity / vel_mag * math.cos(heading[2])
+	deflect_angle = turn_rate / 0.625 / vel_mag * span
+
+	return deflect_angle
+
+def convert_deflect_to_servo(heading, vel, span):
+	deflect_angle = convert_bank_to_deflect(heading, vel, span)
+	
