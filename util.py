@@ -98,11 +98,23 @@ def servo_math(heading, max_turn):
 
 	return servo_angle
 
-# Uses Steven Lingards Basic Analsyis of Ram Air Parachute
-def convert_bank_to_deflect(heading, vel, span):
 
+def convert_bank_to_deflect(heading, vel, span):
+	"""
+	Uses Steven Lingards Basic Analsyis of Ram Air Parachute
+
+	Args:
+		heading (Vec3): an array containing the heading of the craft in the format [azimuth, bank_angle, glide_angle]
+		vel (Vec3): an array containing the caretesian velocity of the craft.
+		span (Float): spanwise width of the wing
+
+	Returns:
+		deflect_angle: the deflection angle of the wing
+	"""
 	vel_mag = math.sqrt(vel[0] ** 2 + vel[1] ** 2 + vel[2] ** 2)
+	# r=\frac{sin(\phi )*g}{V*cos(\gamma )}
 	turn_rate = (math.sin(heading[1]) * _gravity) / (vel_mag * math.cos(heading[2]))
+	# \delta _{a}=\frac{r*b}{0.625*V}
 	deflect_angle = (turn_rate * span) / (0.625 * vel_mag)
 
 	return deflect_angle
