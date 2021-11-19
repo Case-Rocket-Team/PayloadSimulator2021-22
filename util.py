@@ -120,11 +120,20 @@ def convert_bank_to_deflect(heading, vel, span):
 	return deflect_angle
 
 def convert_deflect_to_servo(heading, vel):
-	"""This function converts the desired deflection angle of the parafoil to the servo angle needed to achieve that angle.
+	"""This function takes the current bank angle, calcuates the desired deflection angle of the 
+		parafoil, and converts to the servo angle needed to achieve that deflection angle.
 
 	Args:
 		heading ([Vec3]): an array containing the heading of the craft in the format [azimuth, bank_angle, glide_angle] 
 		vel ([Vec3]): an array containing the velocity of the craft in the format [v_x, v_y, v_z]
 	"""
-	deflect_angle = convert_bank_to_deflect(heading, vel, span)
+	bank_angle = heading[1] # save bank angle for clarity
+	deflect_angle = math.sin(bank_angle * _k3 / np.linalg.norm(vel) ** 2) # calculate deflect angle from bank_angle
+	cosine_total_angle = ((_parafoil_to_slider_distance - _flap_length * math.sin(deflect_angle)) ** 2 + _k1) / _k2 # breaking up the function a bit for clarity
+	
+	# final calculation
+	servo_angle = math.acos(cosine_total_angle) - _h_angle_servo_to_slider
+
+	return servo_angle
+
 	
