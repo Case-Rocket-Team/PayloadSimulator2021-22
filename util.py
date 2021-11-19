@@ -3,7 +3,23 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import math
 
+# Geometric or environment constants
 _gravity = 9.81
+_effective_cord_length = -1 # l + L, overall cord length - the part inside the risers
+_por_to_slider_distance = -1 # d
+_servo_arm_length = -1 # r
+_parafoil_span = -1 # b in Steven Lingards Basic Analysis of Ram Air Parachute eq. 2.41
+_yaw_based_constant = 0.625 # based on Steven Lingards Basic Analysis of Ram Air Parachute, page 46, eq. 2.41
+_cos_glide_angle = -1 # considered constant for purposes of angle calculation, cos(glide_angle)
+_parafoil_to_slider_distance = -1 # vertical drop, H
+_flap_length = -1 # approximated as constant to avoid nightmare math, A
+_h_angle_servo_to_slider = -1 # alpha
+
+# Calculated constants for computational speed
+_k1 = -_effective_cord_length**2 + _por_to_slider_distance**2 + _servo_arm_length**2
+_k2 = 2 * _por_to_slider_distance * _servo_arm_length
+_k3 = _gravity * _parafoil_span / (_yaw_based_constant * _cos_glide_angle)
+
 
 def fuzzifier(pos, accel,
 	gps_noise=0.01,imu_noise=0.01,altimeter_noise=0.01):
@@ -91,6 +107,12 @@ def convert_bank_to_deflect(heading, vel, span):
 
 	return deflect_angle
 
-def convert_deflect_to_servo(heading, vel, span):
+def convert_deflect_to_servo(heading, vel):
+	"""This function converts the desired deflection angle of the parafoil to the servo angle needed to achieve that angle.
+
+	Args:
+		heading ([Vec3]): an array containing the heading of the craft in the format [azimuth, bank_angle, glide_angle] 
+		vel ([Vec3]): an array containing the velocity of the craft in the format [v_x, v_y, v_z]
+	"""
 	deflect_angle = convert_bank_to_deflect(heading, vel, span)
 	
