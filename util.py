@@ -86,8 +86,8 @@ def servo_math(heading, max_turn):
 def convert_bank_to_deflect(heading, vel, span):
 
 	vel_mag = math.sqrt(vel[0] ** 2 + vel[1] ** 2 + vel[2] ** 2)
-	turn_rate = math.sin(heading[1]) * _gravity / (vel_mag * math.cos(heading[2]))
-	deflect_angle = turn_rate / 0.625 / vel_mag * span
+	turn_rate = (math.sin(heading[1]) * _gravity) / (vel_mag * math.cos(heading[2]))
+	deflect_angle = (turn_rate * span) / (0.625 * vel_mag)
 
 	return deflect_angle
 
