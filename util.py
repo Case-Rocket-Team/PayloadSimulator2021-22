@@ -43,7 +43,10 @@ def fuzzifier(pos, accel,
 
 def graph_data(sim_kinetics, dt, noise_data, pred_kinetics, path, **graph_params):
 	"""creates a series of graphs for important data
-		#TODO: decide what graphs to show
+		List of Graphs:
+			Z vs X over time
+			Y vs X over time
+			XYZ over time
 
 	Args:
 		sim_kinetics (Vec3[][]): the simulated kinetics (pos,vel,accel) for the course of the simulation.
