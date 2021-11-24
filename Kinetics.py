@@ -97,7 +97,6 @@ def get_wind_speed(pos):
 
 
 # Air density updater, given altitude z gives air density, isothermal
-# \rho =\rho _{0}*e^{-\left (\frac{gMh}{RT_{0}}-\frac{Lh}{T_{0}}  \right )}
 def get_air_density(pos):
     M = _airConditions['MolarMass']
     R = _airConditions['R']
@@ -105,6 +104,7 @@ def get_air_density(pos):
     L = _airConditions['L']
     ro = _airConditions['ro']
 
+    # \rho =\rho _{0}*e^{-\left (\frac{gMh}{RT_{0}}-\frac{Lh}{T_{0}}  \right )}
     return ro * math.exp( ((- _gravity * M * pos[2]) / (R * T)) - (L * pos[2] / T) )
 
 
