@@ -11,6 +11,14 @@ _area = _span * _chord
 _wind_speed_x = 0.0
 _wind_speed_y = 0.0
 _air_density = 1.225
+_airConditions = {
+        #constants
+        'MolarMass': 0.0289652,
+        'R': 8.31446,
+        'T': 288.15,
+        'L': 0.0065,
+        'ro': 1.225,
+    }
 
 
 def simulate_flight(
@@ -88,9 +96,16 @@ def get_wind_speed(pos):
     return _wind_speed_x, _wind_speed_y
 
 
-# placeholder that just gives the same air density over and over
+# Air density updater, given altitude z gives air density, isothermal
+# \rho =\rho _{0}*e^{-\left (\frac{gMh}{RT_{0}}-\frac{Lh}{T_{0}}  \right )}
 def get_air_density(pos):
-    return _air_density
+    M = _airConditions['MolarMass']
+    R = _airConditions['R']
+    T = _airConditions['T']
+    L = _airConditions['L']
+    ro = _airConditions['ro']
+
+    return ro * math.exp( ((- _gravity * M * pos[2]) / (R * T)) - (L * pos[2] / T) )
 
 
 def calc_velocity(current_velocity, glide_angle, azimuth_angle, drag_force, mass, dt):
