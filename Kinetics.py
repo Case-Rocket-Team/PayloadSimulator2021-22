@@ -10,7 +10,6 @@ _chord = 0.508
 _area = _span * _chord
 _wind_speed_x = 0.0
 _wind_speed_y = 0.0
-_air_density = 1.225
 _airConditions = {
         #constants
         'MolarMass': 0.0289652,
