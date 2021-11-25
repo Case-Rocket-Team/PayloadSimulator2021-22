@@ -2,7 +2,6 @@ from Kinetics import simulate_flight, get_wind_speed, get_air_density
 import numpy as np
 from util import graph_data
 
-
 pos = np.array([0, 0, 1000])
 vel = np.array([0, 0, -20])
 vel_mag = np.linalg.norm(vel)

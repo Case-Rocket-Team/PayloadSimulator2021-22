@@ -1,0 +1,10 @@
+{
+    "gravity": 9.81,
+    "lift_coefficient": 0.449,
+    "drag_coefficient": 0.162,
+    "span": 1.016,
+    "chord": 0.508,
+    "wind_speed_x": 0.0,
+    "wind_speed_y": 0.0,
+    "air_density": 1.225
+}

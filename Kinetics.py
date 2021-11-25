@@ -1,21 +1,22 @@
 import numpy as np
 import math
+import json
 
 # TODO: pull these from JSON
-_gravity = 9.81
-_lift_coefficient = 0.449
-_drag_coefficient = 0.162
-_span = 1.016
-_chord = 0.508
+
+constants_file = "model_parameters.json"
+consts = json.loads(constants_file)
+_gravity = consts['gravity']
+_lift_coefficient = consts['lift_coefficient']
+_drag_coefficient = consts['drag_coefficient']
+_span = consts['span']
+_chord = consts['chord']
 _area = _span * _chord
-_wind_speed_x = 0.0
-_wind_speed_y = 0.0
-_air_density = 1.225
+_wind_speed_x = consts['wind_speed_x']
+_wind_speed_y = consts['wind_speed_y']
+_air_density = consts['air_density']
 
-
-def simulate_flight(
-    mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed
-):
+def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed ):
     """calculates kinetics of the system, using Eulers method, for a given timestep with applied forces.
 
     Args:
