@@ -15,7 +15,7 @@ sim_kinematics = [[],[],[]]
 
 while pos[2] > 0:
     pos, heading, vel, vel_mag, accel = simulate_flight(_mass, pos, vel, vel_mag, heading, applied_acceleration, _timestep, get_air_density, get_wind_speed)
-    print(heading[2])
+    print(vel)
     sim_kinematics[0].append(pos)
 
 graph_data(sim_kinematics, _timestep, 0, 0, 0)

@@ -5,15 +5,15 @@ import math
 
 # Geometric or environment constants
 _gravity = 9.81
-_effective_cord_length = -1 # l + L, overall cord length - the part inside the risers
-_por_to_slider_distance = -1 # d
-_servo_arm_length = -1 # r
-_parafoil_span = -1 # b in Steven Lingards Basic Analysis of Ram Air Parachute eq. 2.41
+_effective_cord_length = 1.08 # l + L, overall cord length - the part inside the risers
+_por_to_slider_distance = 0.13 # d sourced from 
+_servo_arm_length = 0.02 # r
+_parafoil_span = 1.0 # b in Steven Lingards Basic Analysis of Ram Air Parachute eq. 2.41
 _yaw_based_constant = 0.625 # based on Steven Lingards Basic Analysis of Ram Air Parachute, page 46, eq. 2.41
-_cos_glide_angle = -1 # considered constant for purposes of angle calculation, cos(glide_angle)
-_parafoil_to_slider_distance = -1 # vertical drop, H
-_flap_length = -1 # approximated as constant to avoid nightmare math, A
-_h_angle_servo_to_slider = -1 # alpha
+_cos_glide_angle = math.cos(-0.35) # considered constant for purposes of angle calculation, cos(glide_angle)
+_parafoil_to_slider_distance = 0.58 # vertical drop, H
+_flap_length = 0.167 # approximated as constant to avoid nightmare math, A
+_h_angle_servo_to_slider = math.radians(67.4) # alpha (67.4 deg.)
 
 # Calculated constants for computational speed
 _k1 = -_effective_cord_length**2 + _por_to_slider_distance**2 + _servo_arm_length**2
@@ -139,4 +139,4 @@ def convert_deflect_to_servo(heading, vel):
 
 	return servo_angle
 
-	
+convert_deflect_to_servo([1, 1, 1], [-6.38048744, -14.3633811, -5.74653603])	
