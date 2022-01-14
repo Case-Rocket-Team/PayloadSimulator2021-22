@@ -21,8 +21,7 @@ _k2 = 2 * _por_to_slider_distance * _servo_arm_length
 _k3 = _gravity * _parafoil_span / (_yaw_based_constant * _cos_glide_angle)
 
 
-def fuzzifier(pos, accel,
-	gps_noise=0.01,imu_noise=0.01,altimeter_noise=0.01):
+def fuzzifier(pos, accel, gps_noise=0.01,imu_noise=0.01,altimeter_noise=0.01):
 	"""simulates sensor output by adding noise and formatting into string.
 
 	Args:
@@ -86,7 +85,6 @@ def graph_data(sim_kinetics, dt, noise_data, pred_kinetics, path, **graph_params
 
 	plt.show()
 
-
 def servo_math(heading, max_turn):
 	"""calculates servo movement knowing desired acceleration direction.
 		Note: for this sim, calculate the magnitude of acceleration the craft can take
@@ -100,7 +98,6 @@ def servo_math(heading, max_turn):
 	"""
 
 	return servo_angle
-
 
 def convert_bank_to_deflect(heading, vel, span):
 	"""
@@ -132,11 +129,16 @@ def convert_deflect_to_servo(heading, vel):
 	"""
 	bank_angle = heading[1] # save bank angle for clarity
 	deflect_angle = math.sin(bank_angle * _k3 / np.linalg.norm(vel) ** 2) # calculate deflect angle from bank_angle
+	# print(deflect_angle)
 	cosine_total_angle = ((_parafoil_to_slider_distance - _flap_length * math.sin(deflect_angle)) ** 2 + _k1) / _k2 # breaking up the function a bit for clarity
-	
+	# print(cosine_total_angle)
 	# final calculation
 	servo_angle = math.acos(cosine_total_angle) - _h_angle_servo_to_slider
 
 	return servo_angle
 
-convert_deflect_to_servo([1, 1, 1], [-6.38048744, -14.3633811, -5.74653603])	
+# print("k1: " + str(_k1))
+# print("k2: " + str(_k2))
+# print("k3: " + str(_k3))
+
+# convert_deflect_to_servo([1, 1, 1], [-6.38048744, -14.3633811, -5.74653603])	
