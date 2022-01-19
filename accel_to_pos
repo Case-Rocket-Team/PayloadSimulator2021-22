@@ -1,0 +1,24 @@
+#  Description: designing a function to make the midpoint reimann sum
+#  Paul Schussler (pls60)
+
+##########################################################################
+
+def midpoint(accel, lInterval, rInterval):
+    pos = (abs(lInterval) + abs(rInterval)) / partition #replace partition with the size of accel
+    curpos = pos / 2
+    #make a data structure to contain the data points that we get
+    while curpos < pos:
+        #what data streucture is accel
+        #find thbe data point at the index of accel
+        #make a rectangle based on the data point multiplied by the partition, and shove it in the container data strucutre 
+        curpos = curpos + pos
+    #some srot fo data tructure
+    while curpos < pos: #change the variables and such to do a second one
+        #what data streucture is accel
+        #find thbe ddadta point at the index of accel
+        #make a rectangle based on the data point multiplied by the partition, and shove it in the container data strucutre 
+        curpos = curpos + pos
+    return #something
+
+midpoint()
+
