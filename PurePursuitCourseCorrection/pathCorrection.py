@@ -16,9 +16,12 @@ def main(pos, look_ahead_distance, velocity):
     # traversal variable
     trav = lastLooked.getNext()
 
+    # go from the last point we were looking at to the point closest to the payload
     while dist_formula_2d(pos, trav) < dist_formula_2d(pos, prev):
         prev = trav
         trav = trav.getNext()
+
+    # go from point inside circle (closest to payload) to the edge of the circle
     while dist_formula_2d(pos, trav) < look_ahead_distance:
         prev = trav
         trav = trav.getNext()
@@ -28,11 +31,11 @@ def main(pos, look_ahead_distance, velocity):
     # (pos[0] - trav[0]) + (pos[1]] - trav[1]] + #(pos.getZ() - trav.getZ())
     # inverse (cos u . v) / (mag u) (mag v)
 
-    # making vector 1 2d
+    # making heading 2d
     heading = velocity[:2]
     unit_heading = heading / np.linalg.norm(heading)
 
-    unit_y_axis = [1, 0]
+    unit_y_axis = [0, 1]
 
     dot_product = np.dot(unit_heading, unit_y_axis)
     angle = np.arccos(dot_product)
@@ -43,13 +46,18 @@ def main(pos, look_ahead_distance, velocity):
     rotX = (point[0] * np.cos(angle)) - (point[1] * np.sin(angle))
     # rotY = (point[0]] * np.sin(angle)) + (point[1]] * np.cos(angle))
 
-    radius = (dist_formula_2d(pos, trav.getKey())) / 2 * rotX
+    radius = (dist_formula_2d(pos, trav.getKey())**2) / (2 * rotX)
 
     # TODO: determine number of waypoints to return
     num_points_created = 10
     # CREATES WAYPOINTS
 
-    return lastLooked, [(pos[0] + trav.getKey()[0] - (radius**2 - y**2), pos[1] + y) for y in range(num_points_created)]
+    # Create waypoint in the transformed coordinates. Then, use the inverse of the rotation matrix to rotate it back
+
+    # TODO: Fix this, it is completely incorrect
+    [(pos[0] + trav.getKey()[0] - (radius ** 2 - y ** 2), pos[1] + y) for y in range(num_points_created)]
+
+    return lastLooked
 
 
 main()
