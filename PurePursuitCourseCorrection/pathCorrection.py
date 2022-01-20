@@ -13,6 +13,7 @@ def main(pos, look_ahead_distance, velocity):
     # TODO: Last looked is a global variable that is the head of an updated linked list storing the optimal path
     global lastLooked
     prev = lastLooked
+
     # traversal variable
     trav = lastLooked.getNext()
 
@@ -23,7 +24,6 @@ def main(pos, look_ahead_distance, velocity):
 
     # go from point inside circle (closest to payload) to the edge of the circle
     while dist_formula_2d(pos, trav) < look_ahead_distance:
-        prev = trav
         trav = trav.getNext()
 
     lastLooked = trav
@@ -43,21 +43,27 @@ def main(pos, look_ahead_distance, velocity):
     point = trav[:2] - pos[:2]
 
     # rotation matrix code
-    rotX = (point[0] * np.cos(angle)) - (point[1] * np.sin(angle))
-    # rotY = (point[0]] * np.sin(angle)) + (point[1]] * np.cos(angle))
+    rot_x = (point[0] * np.cos(angle)) - (point[1] * np.sin(angle))
+    # rot_y = (point[0] * np.sin(angle)) + (point[1] * np.cos(angle))
 
-    radius = (dist_formula_2d(pos, trav.getKey())**2) / (2 * rotX)
+    radius = (dist_formula_2d(pos, trav.getKey())**2) / (2 * rot_x)
 
     # TODO: determine number of waypoints to return
     num_points_created = 10
     # CREATES WAYPOINTS
 
+    waypoints = [] * num_points_created
+
     # Create waypoint in the transformed coordinates. Then, use the inverse of the rotation matrix to rotate it back
+    for y in range(num_points_created):
+        target_rot_x = rot_x + (radius ** 2 - y ** 2)
+        target_rot_y = y
 
-    # TODO: Fix this, it is completely incorrect
-    [(pos[0] + trav.getKey()[0] - (radius ** 2 - y ** 2), pos[1] + y) for y in range(num_points_created)]
+        cartesian_x = (target_rot_x * np.cos(-angle)) - (target_rot_y * np.sin(-angle))
+        cartesian_y = (target_rot_x * np.sin(-angle)) + (target_rot_y * np.cos(-angle))
+        waypoints[y] = [cartesian_x, cartesian_y]
 
-    return lastLooked
 
 
-main()
+
+    return lastLooked, waypoints
