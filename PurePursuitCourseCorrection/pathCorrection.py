@@ -1,8 +1,23 @@
 import math
+
+import cart as cart
 import numpy as np
 
 # actually make work at some point
 lastLooked = None
+
+
+class Node:
+    # Function to initialise the node object
+    def __init__(self, data, next_node=None):
+        self.data = data  # Assign data
+        self.next = next_node  # Initialize next as null
+
+    def get_next(self):
+        return self.next
+
+    def get_value(self):
+        return self.data
 
 
 def dist_formula_2d(pos, point):
@@ -15,16 +30,16 @@ def main(pos, look_ahead_distance, velocity):
     prev = lastLooked
 
     # traversal variable
-    trav = lastLooked.getNext()
+    trav = lastLooked.get_next()
 
     # go from the last point we were looking at to the point closest to the payload
-    while dist_formula_2d(pos, trav) < dist_formula_2d(pos, prev):
+    while dist_formula_2d(pos, trav.get_value()) < dist_formula_2d(pos, prev.get_value()):
         prev = trav
-        trav = trav.getNext()
+        trav = trav.get_next()
 
     # go from point inside circle (closest to payload) to the edge of the circle
-    while dist_formula_2d(pos, trav) < look_ahead_distance:
-        trav = trav.getNext()
+    while dist_formula_2d(pos, trav.get_value()) < look_ahead_distance:
+        trav = trav.get_next()
 
     lastLooked = trav
     # finding distance between us and where we want to go
@@ -40,30 +55,48 @@ def main(pos, look_ahead_distance, velocity):
     dot_product = np.dot(unit_heading, unit_y_axis)
     angle = np.arccos(dot_product)
 
-    point = trav[:2] - pos[:2]
+    point = np.subtract(trav.get_value()[:2], pos[:2])
+    point = np.ndarray.tolist(point)
 
     # rotation matrix code
-    rot_x = (point[0] * np.cos(angle)) - (point[1] * np.sin(angle))
-    # rot_y = (point[0] * np.sin(angle)) + (point[1] * np.cos(angle))
+    rot_x = (point[0] * math.cos(angle)) - (point[1] * math.sin(angle))
+    rot_y = (point[0] * np.sin(angle)) + (point[1] * np.cos(angle))
 
-    radius = (dist_formula_2d(pos, trav.getKey())**2) / (2 * rot_x)
+    zero_avoidance = 1
+    radius = abs((dist_formula_2d(pos, trav.get_value())**2) / (2 * (np.sign(rot_x) * (abs(rot_x) + zero_avoidance))))
 
     # TODO: determine number of waypoints to return
     num_points_created = 10
     # CREATES WAYPOINTS
 
-    waypoints = [] * num_points_created
+    waypoints = [0] * num_points_created
 
     # Create waypoint in the transformed coordinates. Then, use the inverse of the rotation matrix to rotate it back
-    for y in range(num_points_created):
-        target_rot_x = rot_x + (radius ** 2 - y ** 2)
-        target_rot_y = y
+    print("rot_x: ", rot_x)
+    print("rot_y: ", rot_y)
+    for i in range(num_points_created):
+        print("Radius: ", radius)
+        target_rot_y = rot_y * (i / num_points_created)
+        target_rot_x = rot_x + math.sqrt((radius ** 2) - (target_rot_y ** 2))
+
+        print("X: ", target_rot_x)
+        print("Y: ", target_rot_y)
 
         cartesian_x = (target_rot_x * np.cos(-angle)) - (target_rot_y * np.sin(-angle))
-        cartesian_y = (target_rot_x * np.sin(-angle)) + (target_rot_y * np.cos(-angle))
-        waypoints[y] = [cartesian_x, cartesian_y]
+        cartesian_y = (target_rot_x * -np.sin(-angle)) + (target_rot_y * np.cos(-angle))
+
+        print("Cartesian X: ", cartesian_x)
+        print("Cartesian Y: ", cartesian_y)
+
+        waypoints[i] = [cartesian_x, cartesian_y]
+
+    return waypoints
 
 
+if __name__ == "__main__":
+    for i in [199 - i for i in range(200)]:
+        lastLooked = Node([i, i], lastLooked)
 
-
-    return lastLooked, waypoints
+    # for i in range(100):
+    if True:
+        print(main([0, 0], 10, [0, 1]))
