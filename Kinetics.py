@@ -3,9 +3,8 @@ import math
 import json
 
 # TODO: pull these from JSON
-
-constants_file = "model_parameters.json"
-consts = json.loads(constants_file)
+file_consts = open('model_parameters.json')
+consts = json.load(file_consts)
 _gravity = consts['gravity']
 _lift_coefficient = consts['lift_coefficient']
 _drag_coefficient = consts['drag_coefficient']
