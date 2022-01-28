@@ -37,38 +37,52 @@ def main(pos, look_ahead_distance, velocity):
         prev = trav
         trav = trav.get_next()
 
-    # go from point inside circle (closest to payload) to the edge of the circle
+    # go from point inside circle (closest to payload) to the farthest point within the lookahead distace
     while dist_formula_2d(pos, trav.get_value()) < look_ahead_distance:
         trav = trav.get_next()
 
     lastLooked = trav
     # finding distance between us and where we want to go
-    # (pos[0] - trav[0]) + (pos[1]] - trav[1]] + #(pos.getZ() - trav.getZ())
-    # inverse (cos u . v) / (mag u) (mag v)
 
-    # making heading 2d
+    # making heading 2d, normalizing
     heading = velocity[:2]
     unit_heading = heading / np.linalg.norm(heading)
 
+    # creating y-axis basis vector
     unit_y_axis = [0, 1]
 
+    # using that cos(theta) = (u . v) / (||u|| ||v||)
+    # note ||u|| = ||v|| = 1
     dot_product = np.dot(unit_heading, unit_y_axis)
     angle = np.arccos(dot_product)
 
+    # modifying our location to (0,0)
     point = np.subtract(trav.get_value()[:2], pos[:2])
     point = np.ndarray.tolist(point)
 
-    # rotation matrix code
+    # rotating basis vectors so that payload faces in [0,1] direction
     rot_x = (point[0] * np.cos(angle)) - (point[1] * np.sin(angle))
     rot_y = (point[0] * np.sin(angle)) + (point[1] * np.cos(angle))
 
-    zero_avoidance = 1
-    print("Position: ", pos)
-    print("Target: ", trav.get_value())
-    print("Distance: ", point)
-    print("Target Rotated: ", [rot_x, rot_y])
+    # if x is too small, radius is too large. So, increase the size of x slightly
+    # adjust this as needed
+    zero_avoidance = 0.00001
+    if abs(rot_x) < zero_avoidance:
+        rot_x = np.sign(rot_x) * zero_avoidance
 
-    radius = abs((dist_formula_2d([0, 0], [rot_x, rot_y])**2) / (2 * (np.sign(rot_x) * (abs(rot_x) + zero_avoidance))))
+    # Using the inverse for the equation for curvature of a circle
+    radius = abs((dist_formula_2d([0, 0], [rot_x, rot_y])**2) / (2 * rot_x))
+
+    # minimum turn radius, check after testing
+    min_turn_rad = 69.4
+
+    # stops running if we are so far off the path that we need too tight of a radius
+    if radius < min_turn_rad:
+        return [], None
+
+    # determines bank angle off of
+    # TODO: CITE TEXTBOOK
+    bank_angle = math.asin(velocity[0] ^ 2)
 
     # TODO: determine number of waypoints to return
     num_points_created = 10
@@ -77,9 +91,6 @@ def main(pos, look_ahead_distance, velocity):
     waypoints = [0] * num_points_created
 
     # Create waypoint in the transformed coordinates. Then, use the inverse of the rotation matrix to rotate it back
-    print("rot_x: ", rot_x)
-    print("rot_y: ", rot_y)
-    print("Radius: ", radius)
 
     for i in range(num_points_created):
         # Calculating the target point within rotated coordinates
@@ -100,24 +111,28 @@ def main(pos, look_ahead_distance, velocity):
         # print("Cartesian X: ", cartesian_x)
         # print("Cartesian Y: ", cartesian_y)
 
-        waypoints[i] = [cartesian_x, cartesian_y]
+        coords = np.add([cartesian_x, cartesian_y], pos[:2])
+        coords = np.ndarray.tolist(coords)
 
-    return waypoints
+        waypoints[i] = coords
+
+    return waypoints, bank_angle  # hey, if the rerun_necessary is false, IGNORE THE BANK_ANGLE
 
 
 if __name__ == "__main__":
+    pointNum = 20000
+    for i in [pointNum - 1 - i for i in range(pointNum)]:
+        lastLooked = Node([i, math.sqrt(i)], lastLooked)
 
-    for i in [199 - i for i in range(200)]:
-        lastLooked = Node([i, i**2], lastLooked)
-
-    pos = [0, 0]
-    direction = [0, 1]
-    for i in range(10):
+    # iterations and lookahead dist will need to be adjusted based on function and simulations
+    pos = [10, 2]
+    direction = [12, 5]
+    for i in range(100):
     # if True:
         print(f"\nIteration {i+1}")
-        waypoints = main(pos, 10, direction)
+        waypoints = main(pos, 50, direction)
         print(waypoints)
-        pos = waypoints[6]
-        direction = np.subtract(waypoints[6], waypoints[5])
+        pos = waypoints[9]
+        direction = np.subtract(waypoints[9], waypoints[8])
 
 
