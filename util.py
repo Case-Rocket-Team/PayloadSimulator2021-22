@@ -5,22 +5,28 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 '''
-Kyler | 10/26/21 | Began writing fuzzifier
+Kyler Rosen	|	10/26/21	|	Began writing fuzzifier
+Kyler Rosen	|	01/29/22	|	Updated constants to variables
 '''
+
 
 # Todo: update as a geoid
 def distance_to_degrees(distance):
-	# note: 6371000m is the radius of the earth
-	return (distance * 360) / (2 * pi * 6371000)
+	earth_radius = 6371000
+	return (distance * 360) / (2 * pi * earth_radius)
 
 
 def altitude_to_pressure(altitude):
 	# https://math24.net/barometric-formula.html
-	return 101325 * exp(- (0.02896 * 9.8) / (8.3143 * 288.15))
+	sea_pressure = 101325
+	molar_mass_air = 0.02896
+	g = 9.8
+	gas_constant = 8.3143
+	standard_temp = 288.15
+	return sea_pressure * exp(- (molar_mass_air * g) / (gas_constant * standard_temp)) * altitude
 
 
-def fuzzifier(pos, accel,
-			  gps_noise=0.01, imu_noise=0.01, altimeter_noise=0.01):
+def fuzzifier(pos, accel, gps_noise=0.01, imu_noise=0.01, altimeter_noise=0.01):
 	"""simulates sensor output by adding noise and formatting into string.
 
 	Args:
@@ -62,12 +68,14 @@ def fuzzifier(pos, accel,
 
 	return gps, imu, pressure
 
+
 def graph_data(sim_kinetics, dt, noise_data, pred_kinetics, path, **graph_params):
 	"""creates a series of graphs for important data
 		#TODO: decide what graphs to show
 
 	Args:
 		sim_kinetics (Vec3[][]): the simulated kinetics (pos,vel,accel) for the course of the simulation.
+		dt (int): time step
 		noise_data (Vec3[][]): the noisy data (gps,imu,pressure) for the course of the simulation.
 		pred_kinetics (Vec3[][]): the simulated kinetics (pos,vel,accel) for the course of the simulation.
 		path (Vec3): the set of waypoints used throughout the simulation.
@@ -105,7 +113,7 @@ def graph_data(sim_kinetics, dt, noise_data, pred_kinetics, path, **graph_params
 	plt.show()
 
 
-def servo_math(accel_hat,max_turn):
+def servo_math(accel_hat, max_turn):
 	"""calculates servo movement knowing desired acceleration direction.
 		Note: for this sim, calculate the magnitude of acceleration the craft can take
 
@@ -116,5 +124,5 @@ def servo_math(accel_hat,max_turn):
 	Returns:
 		sigma_dot: the applied acceleration
 	"""
-
+	sigma_dot = None
 	return sigma_dot
