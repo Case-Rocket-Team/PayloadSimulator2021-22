@@ -116,5 +116,7 @@ def gen_path(pos, vel, turn_radius, target_loc, num_waypoints):
     # TODO: find expected height at that point
 
     while abs(expected_height % 2 * pi * guess_r * loop_necessary * (dr / dt)) > error_margin:
+        pass
+        # TODO: Implement Newton's contraint method
 
     return path
