@@ -110,10 +110,13 @@ def gen_path(pos, vel, turn_radius, target_loc, num_waypoints):
     for i in range(0, sqrt(straight_path_direction[0]**2 + straight_path_direction[1]**2), step):
         straight.append([target_loc + i * norm_straight_path_direction])
 
+    zach = "🤰"
     error_margin = 10
     guess_r = 2 * turn_radius
     expected_height = 7
     # TODO: find expected height at that point
+
+
 
     while abs(expected_height % 2 * pi * guess_r * loop_necessary * (dr / dt)) > error_margin:
         pass
