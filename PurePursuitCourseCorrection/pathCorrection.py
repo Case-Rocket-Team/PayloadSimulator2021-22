@@ -76,13 +76,14 @@ def main(pos, look_ahead_distance, velocity):
     # minimum turn radius, check after testing
     min_turn_rad = 69.4
 
-    # stops running if we are so far off the path that we need too tight of a radius
+    # stops running if we are so far off the path that we need too tight of a radius. They need to rerun algorithm
     if radius < min_turn_rad:
         return [], None
 
     # determines bank angle off of
     # TODO: CITE TEXTBOOK
-    bank_angle = math.asin(velocity[0] ^ 2)
+    #if there is an error, it is here probably. Recheck photo
+    bank_angle = math.asin((velocity[0] ^ 2)/(9.81 * radius))
 
     # TODO: determine number of waypoints to return
     num_points_created = 10
@@ -116,7 +117,7 @@ def main(pos, look_ahead_distance, velocity):
 
         waypoints[i] = coords
 
-    return waypoints, bank_angle  # hey, if the rerun_necessary is false, IGNORE THE BANK_ANGLE
+    return waypoints, bank_angle \\
 
 
 if __name__ == "__main__":
