@@ -28,6 +28,11 @@ def dead_reckon(gps,imu,pressure,pos_prev,vel_prev,accel_prev):
     """
     return pos_list, vel_list, accel_list
 
+
+def dist_formula_2d(pos, point):
+    return math.sqrt((pos[0] - point[0]) ** 2 + (pos[1] - point[1]) ** 2)  # + (pos.getZ() - point.getZ()) ** 2)
+
+
 def pure_pursuit(pos,vel,accel,path):
     """Find the appropriate direction to go to the next waypoint, using pure pursuit
 
@@ -42,8 +47,14 @@ def pure_pursuit(pos,vel,accel,path):
     """
     return accel_hat
 
+
 def cross_product(a, b, c):
     return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[1] - a[1])
+
+
+def error_margin_expected(expected_height, guess_r, loop_necessary, dr_dz):
+    return expected_height - 2 * math.pi * guess_r * loop_necessary * dr_dz
+
 
 def gen_path(pos, vel, turn_radius, target_loc, num_waypoints):
     """Generate a set of waypoints for the craft to follow
@@ -111,15 +122,22 @@ def gen_path(pos, vel, turn_radius, target_loc, num_waypoints):
         straight.append([target_loc + i * norm_straight_path_direction])
 
     zach = "🤰"
-    error_margin = 10
-    guess_r = 2 * turn_radius
-    expected_height = 7
+    acceptable_error_margin = 10
     # TODO: find expected height at that point
 
+    # see this link for arclength calculations:
+    # https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
+    theta = np.arccos(1 - dist_formula_2d(pos,tangent_point)**2 / (2 * turn_radius**2))
+    arclength = theta * turn_radius
+    length = arclength + dist_formula_2d(tangent_point, target_loc)
+    expected_height = length * dr_dz
+    error_margin = expected_height - 2 * pi * guess_r * loop_necessary * dr_dz
+    guess_r = 1.5 * turn_radius
 
+    while abs(error_margin) > acceptable_error_margin:
+        h = 0.1
+        error_derivative = (error_margin_expected(expected_height, guess_r + h, loops_necessary, dr_dz) + error_margin_expected(expected_height, guess_r, loops_necessary, dr_dz)) / h
 
-    while abs(expected_height % 2 * pi * guess_r * loop_necessary * (dr / dt)) > error_margin:
-        pass
-        # TODO: Implement Newton's contraint method
+        error_margin = guess_r - error_margin / error_derivative
 
     return path
