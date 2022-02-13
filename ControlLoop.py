@@ -4,8 +4,11 @@ v0.1 Finished Path Algorithm
 
 '''
 
-from math import sqrt, pi
+from math import sqrt, pi, floor
+
+import archive as archive
 import numpy as np
+
 
 class Node:
     # Function to initialise the node object
@@ -19,7 +22,8 @@ class Node:
     def get_value(self):
         return self.data
 
-def dead_reckon(gps,imu,pressure,pos_prev,vel_prev,accel_prev):
+
+def dead_reckon(gps, imu, pressure, pos_prev, vel_prev, accel_prev):
     """integrate position from of the craft from sensor data
 
     Args:
@@ -39,10 +43,10 @@ def dead_reckon(gps,imu,pressure,pos_prev,vel_prev,accel_prev):
 
 
 def dist_formula_2d(pos, point):
-    return math.sqrt((pos[0] - point[0]) ** 2 + (pos[1] - point[1]) ** 2)  # + (pos.getZ() - point.getZ()) ** 2)
+    return sqrt((pos[0] - point[0]) ** 2 + (pos[1] - point[1]) ** 2)  # + (pos.getZ() - point.getZ()) ** 2)
 
 
-def pure_pursuit(pos,vel,accel,path):
+def pure_pursuit(pos, vel, accel, path):
     """Find the appropriate direction to go to the next waypoint, using pure pursuit
 
     Args:
@@ -73,7 +77,16 @@ def normalize(v):
     return v / norm
 
 
-def gen_path(pos, vel, target_loc):
+def generate_points(loops_necessary, step_per_circle, x_0, y_0, r, starting_height, path):
+    # creates the concentric circles downwards
+    t = np.linspace(0, 2 * np.pi * loops_necessary, floor(step_per_circle * loops_necessary), endpoint=False)
+    x = x_0 + r * np.cos(t)
+    y = y_0 + r * np.sin(t)
+    z = starting_height - r * 2 * pi / step_per_circle * t
+    path.append(np.c_[x, y, z])
+
+
+def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
     """Generate a set of waypoints for the craft to follow
 
     Args:
@@ -86,8 +99,11 @@ def gen_path(pos, vel, target_loc):
     Returns:
         path: the set of waypoints generated
     """
+    path = []
+
+    step_per_circle = 50
+
     vel = normalize(vel)
-    turn_radius = 147
 
     # find whether distance is shorter turning left or right
     turn_right = True
@@ -101,7 +117,7 @@ def gen_path(pos, vel, target_loc):
     dx = vel[0]
     dy = vel[1]
 
-    if dx !=0:
+    if dx != 0:
         tangent_slope = dy/dx
 
         # dy/dx = -x/y so x = -dy/dx * y
@@ -116,6 +132,7 @@ def gen_path(pos, vel, target_loc):
 
     print(f"x_0: {x_0}")
     print(f"y_0: {y_0}")
+
     # see this answer for finding the tangent line off a circle that intersects a point
     # https://www.quora.com/What-is-the-point-of-intersection-of-the-tangents-drawn-at-the-points-where-the-given-line-intersects-the-given-circle
 
@@ -130,12 +147,10 @@ def gen_path(pos, vel, target_loc):
     h = sqrt(turn_radius**2 - c**2)
 
     print(f"vel: {vel}")
-    norm_radius_to_target = np.linalg.norm(radius_to_target)
-    c = c * norm_radius_to_target
-    temp = [None, None]
-    temp[1], temp[0] = h * vel[0], h * vel[1]
-    h = temp
-    delta = np.add(c, h)
+    norm_radius_to_target = normalize(radius_to_target)
+    c_vector = [c * norm_radius_to_target[0], c * norm_radius_to_target[1]]
+    h_vector = [h * norm_radius_to_target[1], h * norm_radius_to_target[0]]
+    delta = np.add(c_vector, h_vector)
     delta = np.ndarray.tolist(delta)
 
     print(f"[x_0, y_0]: {[x_0, y_0]}")
@@ -148,61 +163,59 @@ def gen_path(pos, vel, target_loc):
 
     if cross_product([0, 0], rotated_velocity, tangent_point) < 0:
         print(f"h: {h}")
-        h[0],h[1] = -2 * h[0], -2 * h[1]
+        correction_vector = [None, None]
+        correction_vector[0], correction_vector[1] = -2 * h_vector[0], -2 * h_vector[1]
         print(f"c: {c}")
         print(f"h: {h}")
-        delta = np.subtract(c, h)
-        print(f"delta: {delta}")
-        delta = np.ndarray.tolist(delta)
-        print(f"[x_0, y_0]: {[x_0, y_0]}")
-        print(f"delta: {delta}")
-        tangent_point = np.add([x_0, y_0], delta)
+        tangent_point = np.add(tangent_point, correction_vector)
+
 
     # final vector saved in tangent_point
-
-    straight_path_direction = np.subtract(target_loc, tangent_point)
+    straight_path_direction = np.subtract(target_loc[:2], tangent_point)
     norm_straight_path_direction = np.linalg.norm(straight_path_direction)
+
+    # finds how much height is expected to be lsot
+    # see this link for arc length calculations:
+    # https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
+    dz_dr = 0.37037037037
+
+    print(f"This thing: {1 - (dist_formula_2d(pos, tangent_point)**2) / (2 * turn_radius**2)}")
+    theta = np.arccos(1 - dist_formula_2d(pos, tangent_point)**2 / (2 * turn_radius**2))
+    arc_length = theta * turn_radius
+    loops_necessary = arc_length / (2 * pi * turn_radius)
+
+    generate_points(loops_necessary, step_per_circle, x_0, y_0, turn_radius, pos[2], path)
 
     # generate path between the tangent point and the target point
     step = 10
 
     straight_path = []
-    for i in range(0, sqrt(straight_path_direction[0]**2 + straight_path_direction[1]**2), step):
+    for i in range(0, floor(sqrt(straight_path_direction[0]**2 + straight_path_direction[1]**2)), step):
         straight_path.append([target_loc + i * norm_straight_path_direction])
 
-    zach = "🤰"
-    acceptable_error_margin = 10
-    # TODO: find expected height at that point
+    zach_leclaire = "🤰"
 
-    # finds how much height is expected to be lsot
-    # see this link for arclength calculations:
-    # https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
-    theta = np.arccos(1 - dist_formula_2d(pos,tangent_point)**2 / (2 * turn_radius**2))
-    arc_length = theta * turn_radius
     length = arc_length + dist_formula_2d(tangent_point, target_loc)
-    expected_height = length * dr_dz
-
+    expected_height = length * dz_dr
     guess_r = 1.5 * turn_radius
-    dz_dr = 0.37037037037
+    loops_necessary = round(expected_height / (2 * pi * guess_r * dz_dr))
 
-    error_margin = expected_height - 2 * pi * guess_r * loop_necessary * dr_dz
+    error_margin = error_margin_expected(expected_height, guess_r, loops_necessary, dz_dr)
+    h = 1
+
+    acceptable_error_margin = 10
     while abs(error_margin) > acceptable_error_margin:
-        h = 0.1
-        error_derivative = (error_margin_expected(expected_height, guess_r + h, loops_necessary, dz_dr) + error_margin_expected(expected_height, guess_r, loops_necessary, dz_dr)) / h
-        error_margin = guess_r - error_margin / error_derivative
+        error_margin_plus_h = error_margin_expected(expected_height, guess_r + h, loops_necessary, dz_dr)
+        error_margin = error_margin_expected(expected_height, guess_r, loops_necessary, dz_dr)
+        error_derivative = (error_margin_plus_h + error_margin) / h
+        guess_r = guess_r - error_margin / error_derivative
 
-    final_rad = guess_r * np.rot90(straight_path_direction[:2])
-    x_1 = target_loc + final_rad[0]
-    y_1 = target_loc + final_rad[1]
 
-    step_per_circle = 50
 
-    circles = []
+    x_1 = target_loc[0] + guess_r * straight_path_direction[1]
+    y_1 = target_loc[1] + -1 * guess_r * straight_path_direction[0]
 
-    t = np.linspace(0, 2 * np.pi, step_per_circle, endpoint=False)
-    x = turn_radius * np.cos(t)
-    y = turn_radius * np.sin(t)
-    circles.append(np.c_[x, y])
+    path.append(generate_points(loops_necessary, step_per_circle, x_1, y_1, guess_r, expected_height, path))
 
     return path
 
