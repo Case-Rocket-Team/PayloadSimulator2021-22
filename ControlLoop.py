@@ -82,7 +82,7 @@ def normalize(v):
 
 
 # generates a helical pattern downwards
-def generate_points(loop_num, step_per_circle, x_0, y_0, r, starting_height, path, starting_point, dz_dr, clockwise):
+def generate_helix(loop_num, step_per_circle, x_0, y_0, r, starting_height, path, starting_point, dz_dr, clockwise):
     # rewrite of law of consines, see attatched
     theta_offset = np.arccos(1 - dist_formula_2d([x_0 + r, y_0], starting_point) ** 2 / (2 * r ** 2))
 
@@ -98,6 +98,19 @@ def generate_points(loop_num, step_per_circle, x_0, y_0, r, starting_height, pat
         y = y_0 + r * np.sin(theta)
         z = starting_height - (((theta + theta_offset) * multiplier) * r) * dz_dr
         path.append([x, y, z])
+
+
+def generate_straight_path(pos, arc_length, dz_dr, straight_path_direction, tangent_point, norm_straight_path_direction, path):
+    print("Generating a straight path: ")
+    # generate path between the tangent point and the target point
+    step=10
+    height = pos[2] - arc_length * dz_dr
+
+    for i in range(0, floor(dist_formula_2d([0, 0], straight_path_direction)), step):
+        point = tangent_point[:2] + i * norm_straight_path_direction
+    point = np.ndarray.tolist(point)
+    point = [point[0], point[1], height - i * dz_dr]
+    path.append(point)
 
 
 def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
@@ -117,8 +130,9 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
     dz_dr = 1/2.7
     step_per_circle = 50
     vel = normalize(vel)
+    print(f"vel: {vel}")
 
-    print(f"\nTurning Towards Target: ")
+    print(f"\n\nTurning Towards Target: ")
 
     # find whether the point it is targetting is to the left or right
     turn_right = True
@@ -144,65 +158,88 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
 
     # condition that r is negative, ei a vector pointing left from the center to the point
     elif turn_right:
+        # uses equation derived above
         tangent_slope = dy/dx
+        print(f"tangent_slope: {tangent_slope}")
+
         y_0 = pos[1] - turn_radius / sqrt(1 + tangent_slope**2)
         x_0 = pos[0] + turn_radius**2 - y_0**2
 
-    # condition that the radius is the
+    # condition that r is positive, which means the vector pointing from the center of circle to current pos is positive
     else:
+        # uses equation derived above
         tangent_slope = dy / dx
+        print(f"tangent_slope: {tangent_slope}")
+
         y_0 = pos[1] + turn_radius / sqrt(1 + tangent_slope ** 2)
         x_0 = pos[0] + turn_radius ** 2 - y_0 ** 2
 
     print(f"x_0: {x_0}")
     print(f"y_0: {y_0}")
 
-    # see this answer for finding the tangent line off a circle that intersects a point
+    if dist_formula_2d([x_0, y_0], target_loc) < turn_radius:
+        loops_necessary = round(pos[2] / (2 * pi * turn_radius * dz_dr))
+        generate_helix(loops_necessary, step_per_circle, x_0, y_0, turn_radius, pos[2], path, pos, dz_dr, turn_right)
+
+        return path
+
+    # see this answer for finding the tangent line off a circle that intersects a point using similar triangles
+    # note that c/r = r/p
     # https://www.quora.com/What-is-the-point-of-intersection-of-the-tangents-drawn-at-the-points-where-the-given-line-intersects-the-given-circle
 
+    # finds the vector pointing from the center of the circle to the target and its magnitude
     radius_to_target = np.subtract(target_loc[:2], [x_0, y_0])
+    norm_radius_to_target = normalize(radius_to_target)
     p = dist_formula_2d([0, 0], radius_to_target)
 
-    print(f"turn_radius")
+    print("")
     print(f"radius_to_target: {radius_to_target}")
     print(f"p = {p}")
+
+    # finds the projection of the vector from the center of the circle to the tangent point onto radius_to_target
     c = turn_radius**2/p
     print(f"c = {c}")
-    h = - sqrt(turn_radius**2 - c**2)
 
-    print(f"vel: {vel}")
-    norm_radius_to_target = normalize(radius_to_target)
+    # finds the length from the c vector to the end of the radius_to_target
+    h = - sqrt(turn_radius**2 - c**2)
+    print(f"h = {h}")
+
+    # creates the c vector colinear and perpendicular to radius_to_target respectively
     c_vector = [c * norm_radius_to_target[0], c * norm_radius_to_target[1]]
     h_vector = [h * norm_radius_to_target[1], h * -norm_radius_to_target[0]]
+    print(f"c_vector = {c_vector}")
+    print(f"h_vector = {h_vector}")
+
+    # finds the radius vector from the center of the circle to the tangent point
     delta = np.add(c_vector, h_vector)
     delta = np.ndarray.tolist(delta)
-
-    print(f"[x_0, y_0]: {[x_0, y_0]}")
     print(f"delta: {delta}")
+    print("")
 
+    # Finds the point where the tangent line on the circle intersects the target point
     tangent_point = np.add([x_0, y_0], delta)
-    print(dist_formula_2d([x_0, y_0], tangent_point))
+    print(f"Distance from circle center to tangent point: {dist_formula_2d([x_0, y_0], tangent_point)}")
 
+    # rotates the heading so it points towards / away from the center of the circle
     rotated_velocity = [None, None]
     rotated_velocity[1], rotated_velocity[0] = vel[0], vel[1]
 
+    # checks if tangent point should be on on the other side of the circle and flips the direction of h
     if cross_product([0, 0], rotated_velocity, tangent_point) < 0:
-        print(f"h: {h}")
         correction_vector = [None, None]
         correction_vector[0], correction_vector[1] = -2 * h_vector[0], -2 * h_vector[1]
-        print(f"c: {c}")
-        print(f"h: {h}")
         tangent_point = np.add(tangent_point, correction_vector)
 
-    print(dist_formula_2d([x_0, y_0], tangent_point))
-    print(f"This thing: {1 - (dist_formula_2d(pos, tangent_point)**2) / (2 * turn_radius**2)}")
+    # finds the arc length of curve found and determines what fraction of a circle it is
+    print(f"cos(theta): {1 - (dist_formula_2d(pos, tangent_point)**2) / (2 * turn_radius**2)}")
     theta = np.arccos(1 - dist_formula_2d(pos, tangent_point)**2 / (2 * turn_radius**2))
     arc_length = theta * turn_radius
-    loops_necessary = arc_length / (2 * pi * turn_radius)
+    loop_fraction_necessary = arc_length / (2 * pi * turn_radius)
+    print(f"arc_length: {arc_length}")
 
-    generate_points(loops_necessary, step_per_circle, x_0, y_0, turn_radius, pos[2], path, pos, dz_dr, turn_right)
+    generate_helix(loop_fraction_necessary, step_per_circle, x_0, y_0, turn_radius, pos[2], path, pos, dz_dr, turn_right)
 
-    # final vector saved in tangent_point
+    # finds the vector from the tangent point to the target point and normalizes the direction
     straight_path_direction = np.subtract(target_loc[:2], tangent_point)
     norm_straight_path_direction = normalize(straight_path_direction)
 
@@ -210,26 +247,22 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
     # see this link for arc length calculations:
     # https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
 
-    # generate path between the tangent point and the target point
-    step = 10
-    height = pos[2] - arc_length * dz_dr
-
-    for i in range(0, floor(dist_formula_2d([0, 0], straight_path_direction)), step):
-        point = tangent_point[:2] + i * norm_straight_path_direction
-        point = np.ndarray.tolist(point)
-        point = [point[0], point[1], height - i * dz_dr]
-        path.append(point)
+    generate_straight_path(pos, arc_length, dz_dr, straight_path_direction, tangent_point, norm_straight_path_direction, path)
 
     zach_leclaire = "🤰"
 
+    # calculates how many loops until the payload hits the ground
+    # creates an initial guess
     length = arc_length + dist_formula_2d(tangent_point, target_loc)
     expected_height = pos[2] - length * dz_dr
     guess_r = 1.5 * turn_radius
     loops_necessary = round(expected_height / (2 * pi * guess_r * dz_dr))
 
+    # calculates how far the payload would stop above/below the ground
     error_margin = error_margin_expected(expected_height, guess_r, loops_necessary, dz_dr)
     h = 1
 
+    # Secant method to optimize guess_r
     acceptable_error_margin = 10
     while abs(error_margin) > acceptable_error_margin:
         error_margin_plus_h = error_margin_expected(expected_height, guess_r + h, loops_necessary, dz_dr)
@@ -237,18 +270,19 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
         error_derivative = (error_margin_plus_h - error_margin) / h
         guess_r = guess_r - error_margin / error_derivative
 
+    # finds the center of the circle with radius guess_r
     x_1 = target_loc[0] + guess_r * norm_straight_path_direction[1]
     y_1 = target_loc[1] + -1 * guess_r * norm_straight_path_direction[0]
 
-    print(dist_formula_2d([x_1, y_1], target_loc))
+    print(f"distance from center of circle to target: {dist_formula_2d([x_1, y_1], target_loc)}")
 
-    generate_points(loops_necessary, step_per_circle, x_1, y_1, guess_r, expected_height, path, target_loc, dz_dr, True)
+    generate_helix(loops_necessary, step_per_circle, x_1, y_1, guess_r, expected_height, path, target_loc, dz_dr, True)
 
     return path
 
 
 def plotting():
-    path = gen_path([0, 0, 2000], [50, 0, 0], [0, 10, 0])
+    path = gen_path([0, 0, 2000], [20, 97, 0], [45, 300, 0])
     print(path)
 
     path_x = [item[0] for item in path[:-1]]

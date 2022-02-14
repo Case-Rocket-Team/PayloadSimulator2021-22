@@ -88,20 +88,28 @@
       <option name="project" value="LOCAL" />
       <updated>1644743272748</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Address clockwise/counterclockwise bug">
+      <created>1644788075030</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1644788075030</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Finished writing algorithm, beginning to debug" />
     <MESSAGE value="Debugging, Fixing the vector addition" />
-    <option name="LAST_COMMIT_MESSAGE" value="Debugging, Fixing the vector addition" />
+    <MESSAGE value="Address clockwise/counterclockwise bug" />
+    <option name="LAST_COMMIT_MESSAGE" value="Address clockwise/counterclockwise bug" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ControlLoop.py</url>
-          <line>227</line>
+          <line>255</line>
           <option name="timeStamp" value="48" />
         </line-breakpoint>
       </breakpoints>
