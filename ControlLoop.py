@@ -64,7 +64,7 @@ def pure_pursuit(pos, vel, accel, path):
 
 # takes the cross product of vectors a, b, and c
 def cross_product(a, b, c):
-    return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[1] - a[1])
+    return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
 
 
 # finds how much higher / lower the payload would be expected to land at the given specications
@@ -83,8 +83,12 @@ def normalize(v):
 
 # generates a helical pattern downwards
 def generate_helix(loop_num, step_per_circle, x_0, y_0, r, starting_height, path, starting_point, dz_dr, clockwise):
-    # rewrite of law of consines, see attatched
+    # rewrite of law of cosines, see attatched
+    # https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
     theta_offset = np.arccos(1 - dist_formula_2d([x_0 + r, y_0], starting_point) ** 2 / (2 * r ** 2))
+
+    if starting_point[1] > y_0:
+        theta_offset = 2 * pi - theta_offset
 
     if clockwise:
         multiplier = -1
@@ -97,20 +101,25 @@ def generate_helix(loop_num, step_per_circle, x_0, y_0, r, starting_height, path
         x = x_0 + r * np.cos(theta)
         y = y_0 + r * np.sin(theta)
         z = starting_height - (((theta + theta_offset) * multiplier) * r) * dz_dr
+
         path.append([x, y, z])
 
 
+
 def generate_straight_path(pos, arc_length, dz_dr, straight_path_direction, tangent_point, norm_straight_path_direction, path):
+    print("")
     print("Generating a straight path: ")
     # generate path between the tangent point and the target point
-    step=10
+    step = 10
     height = pos[2] - arc_length * dz_dr
+    print(f"Height: {height}")
 
     for i in range(0, floor(dist_formula_2d([0, 0], straight_path_direction)), step):
         point = tangent_point[:2] + i * norm_straight_path_direction
-    point = np.ndarray.tolist(point)
-    point = [point[0], point[1], height - i * dz_dr]
-    path.append(point)
+
+        point = np.ndarray.tolist(point)
+        point = [point[0], point[1], height - i * dz_dr]
+        path.append(point)
 
 
 def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
@@ -134,10 +143,11 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
 
     print(f"\n\nTurning Towards Target: ")
 
-    # find whether the point it is targetting is to the left or right
+    # find whether the point it is targeting is to the left or right
     turn_right = True
     if cross_product([0, 0], vel, target_loc) > 0:
         turn_right = False
+
     print(f"turn_right: {turn_right}:")
 
     # while tangent of minimum radius circle does not point towards target:
@@ -150,7 +160,7 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
     # off condition that dx = 0 which would lead to an infinite slope
     if dx == 0:
         y_0 = pos[1]
-        x_0 = pos[0] + turn_radius ** 2
+        x_0 = pos[0] + turn_radius
 
     # dy/dx = -x/y so x = -dy/dx * y
     # +-r = sqrt((x-x_0)^2 + (y-y_0)y^2), but x,y = 0,0 so +-r = sqrt((x_0)^2 + (y_0)^2)
@@ -163,7 +173,7 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
         print(f"tangent_slope: {tangent_slope}")
 
         y_0 = pos[1] - turn_radius / sqrt(1 + tangent_slope**2)
-        x_0 = pos[0] + turn_radius**2 - y_0**2
+        x_0 = pos[0] + sqrt(turn_radius**2 - y_0**2)
 
     # condition that r is positive, which means the vector pointing from the center of circle to current pos is positive
     else:
@@ -172,7 +182,7 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
         print(f"tangent_slope: {tangent_slope}")
 
         y_0 = pos[1] + turn_radius / sqrt(1 + tangent_slope ** 2)
-        x_0 = pos[0] + turn_radius ** 2 - y_0 ** 2
+        x_0 = pos[0] + sqrt(turn_radius ** 2 - y_0 ** 2)
 
     print(f"x_0: {x_0}")
     print(f"y_0: {y_0}")
@@ -233,6 +243,7 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
     # finds the arc length of curve found and determines what fraction of a circle it is
     print(f"cos(theta): {1 - (dist_formula_2d(pos, tangent_point)**2) / (2 * turn_radius**2)}")
     theta = np.arccos(1 - dist_formula_2d(pos, tangent_point)**2 / (2 * turn_radius**2))
+
     arc_length = theta * turn_radius
     loop_fraction_necessary = arc_length / (2 * pi * turn_radius)
     print(f"arc_length: {arc_length}")
@@ -255,6 +266,9 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
     # creates an initial guess
     length = arc_length + dist_formula_2d(tangent_point, target_loc)
     expected_height = pos[2] - length * dz_dr
+    if expected_height < 0:
+        return path
+
     guess_r = 1.5 * turn_radius
     loops_necessary = round(expected_height / (2 * pi * guess_r * dz_dr))
 
@@ -282,7 +296,7 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
 
 
 def plotting():
-    path = gen_path([0, 0, 2000], [20, 97, 0], [45, 300, 0])
+    path = gen_path([0, 0, 5000], [1, -1, 0], [-2134, 1000, 0])
     print(path)
 
     path_x = [item[0] for item in path[:-1]]
@@ -300,9 +314,9 @@ def plotting():
     axes.set_ylabel('Y')
     axes.set_zlabel('Z')
 
-    min_coord = -1000
-    max_coord = 3000
-    step = 500
+    min_coord = -3000
+    max_coord = 2000
+    step = (max_coord - min_coord) // 6
 
     x_ticks = np.arange(min_coord, max_coord, step)
     plt.xticks(x_ticks)
