@@ -64,10 +64,10 @@ def pure_pursuit(pos, vel, accel, path):
 
 # takes the cross product of vectors a, b, and c
 def cross_product(a, b, c):
-    return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+    return ((b[0] - a[0]) * (c[1] - a[1])) - ((b[1] - a[1]) * (c[0] - a[0]))
 
 
-# finds how much higher / lower the payload would be expected to land at the given specications
+# finds how much higher / lower the payload would be expected to land at the given specifications
 def error_margin_expected(expected_height, guess_r, loop_num, dz_dr):
     return expected_height - 2 * pi * guess_r * loop_num * dz_dr
 
@@ -82,9 +82,11 @@ def normalize(v):
 
 
 # generates a helical pattern downwards
-def generate_helix(loop_num, step_per_circle, x_0, y_0, r, starting_height, path, starting_point, dz_dr, clockwise):
+def generate_helix(loop_num, step_per_circle, x_0, y_0, r, starting_height, path, starting_point, dz_dr, clockwise, target_point = None):
     # rewrite of law of cosines, see attatched
     # https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
+
+
     theta_offset = np.arccos(1 - dist_formula_2d([x_0 + r, y_0], starting_point) ** 2 / (2 * r ** 2))
 
     if starting_point[1] > y_0:
@@ -103,6 +105,21 @@ def generate_helix(loop_num, step_per_circle, x_0, y_0, r, starting_height, path
         z = starting_height - (((theta + theta_offset) * multiplier) * r) * dz_dr
 
         path.append([x, y, z])
+
+    # adjusts if arccos is off because of range
+
+    error_margin = 10
+
+    if target_point is not None:
+        if dist_formula_2d([x, y, z], target_point) < error_margin:
+            return
+
+        theta = loop_num * 2 * pi
+        theta = (2 * pi - theta) - theta
+        loop_num = theta / (2 * pi)
+
+        generate_helix(loop_num, step_per_circle, x_0, y_0, r, z, path, [x, y], dz_dr, clockwise)
+
 
 
 
@@ -150,39 +167,17 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
 
     print(f"turn_right: {turn_right}:")
 
-    # while tangent of minimum radius circle does not point towards target:
-    # move 1 step farther on circle
-    # reminder that in a circle, dy/dx = -x/y
-    dx = -vel[0]
-    dy = vel[1]
+    # rotates heading based off of turn direction to generate center point
+    radius = [None, None]
 
-    # finding the center of the circle based off of the slope at its current position
-    # off condition that dx = 0 which would lead to an infinite slope
-    if dx == 0:
-        y_0 = pos[1]
-        x_0 = pos[0] + turn_radius
+    if turn_right:
+        radius_direction = vel[1], -vel[0]
 
-    # dy/dx = -x/y so x = -dy/dx * y
-    # +-r = sqrt((x-x_0)^2 + (y-y_0)y^2), but x,y = 0,0 so +-r = sqrt((x_0)^2 + (y_0)^2)
-    # rewrite +-r = sqrt((x_0)^2 + (y_0)^2) = sqrt((-dy/dx * y_0)^2 + (y_0)^2) = y_0 * sqrt((dy/dx)^2 + 1)
-
-    # condition that r is negative, ei a vector pointing left from the center to the point
-    elif turn_right:
-        # uses equation derived above
-        tangent_slope = dy/dx
-        print(f"tangent_slope: {tangent_slope}")
-
-        y_0 = pos[1] - turn_radius / sqrt(1 + tangent_slope**2)
-        x_0 = pos[0] + sqrt(turn_radius**2 - y_0**2)
-
-    # condition that r is positive, which means the vector pointing from the center of circle to current pos is positive
     else:
-        # uses equation derived above
-        tangent_slope = dy / dx
-        print(f"tangent_slope: {tangent_slope}")
+        radius_direction = -vel[1], vel[0]
 
-        y_0 = pos[1] + turn_radius / sqrt(1 + tangent_slope ** 2)
-        x_0 = pos[0] + sqrt(turn_radius ** 2 - y_0 ** 2)
+    x_0 = pos[0] + turn_radius * radius_direction[0]
+    y_0 = pos[1] + turn_radius * radius_direction[1]
 
     print(f"x_0: {x_0}")
     print(f"y_0: {y_0}")
@@ -248,29 +243,28 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
     loop_fraction_necessary = arc_length / (2 * pi * turn_radius)
     print(f"arc_length: {arc_length}")
 
-    generate_helix(loop_fraction_necessary, step_per_circle, x_0, y_0, turn_radius, pos[2], path, pos, dz_dr, turn_right)
+    generate_helix(loop_fraction_necessary, step_per_circle, x_0, y_0, turn_radius, pos[2], path, pos, dz_dr, turn_right, tangent_point)
 
     # finds the vector from the tangent point to the target point and normalizes the direction
     straight_path_direction = np.subtract(target_loc[:2], tangent_point)
     norm_straight_path_direction = normalize(straight_path_direction)
 
-    # finds how much height is expected to be lsot
-    # see this link for arc length calculations:
-    # https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
-
     generate_straight_path(pos, arc_length, dz_dr, straight_path_direction, tangent_point, norm_straight_path_direction, path)
 
     zach_leclaire = "🤰"
 
-    # calculates how many loops until the payload hits the ground
-    # creates an initial guess
+    # finds how much height is expected to be lost
+    # see this link for arc length calculations:
+    # https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
     length = arc_length + dist_formula_2d(tangent_point, target_loc)
     expected_height = pos[2] - length * dz_dr
     if expected_height < 0:
         return path
 
+    # calculates how many loops until the payload hits the ground
+    # creates an initial guess
     guess_r = 1.5 * turn_radius
-    loops_necessary = round(expected_height / (2 * pi * guess_r * dz_dr))
+    loops_necessary = floor(expected_height / (2 * pi * guess_r * dz_dr))
 
     # calculates how far the payload would stop above/below the ground
     error_margin = error_margin_expected(expected_height, guess_r, loops_necessary, dz_dr)
@@ -296,7 +290,7 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
 
 
 def plotting():
-    path = gen_path([0, 0, 5000], [1, -1, 0], [-2134, 1000, 0])
+    path = gen_path([0, 0, 5000], [1, -1, 0], [-500, 500, 0])
     print(path)
 
     path_x = [item[0] for item in path[:-1]]
@@ -316,7 +310,7 @@ def plotting():
 
     min_coord = -3000
     max_coord = 2000
-    step = (max_coord - min_coord) // 6
+    step = (max_coord - min_coord) // 10
 
     x_ticks = np.arange(min_coord, max_coord, step)
     plt.xticks(x_ticks)
