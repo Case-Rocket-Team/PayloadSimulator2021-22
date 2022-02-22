@@ -51,29 +51,24 @@ def dist_formula_2d(pos, point):
     return sqrt((pos[0] - point[0]) ** 2 + (pos[1] - point[1]) ** 2)  # + (pos.getZ() - point.getZ()) ** 2)
 
 
-def pure_pursuit(pos, look_ahead_distance, velocity):
+def pure_pursuit(pos, look_ahead_distance, velocity, path):
     # TODO: Last looked is a global variable that is the head of an updated linked list storing the optimal path
     global lastLooked
-    prev = lastLooked
-
-    # traversal variable
-    trav = lastLooked + 1
 
     # go from the last point we were looking at to the point closest to the payload
-    while dist_formula_2d(pos, trav.get_value()) < dist_formula_2d(pos, prev.get_value()):
-        prev = trav
-        trav = trav.get_next()
+    while dist_formula_2d(pos, path[lastLooked + 1]) < dist_formula_2d(pos, path[lastLooked]):
+        lastLooked += 1
 
     # go from point inside circle (closest to payload) to the farthest point within the lookahead distace
-    while dist_formula_2d(pos, trav.get_value()) < look_ahead_distance:
-        trav = trav.get_next()
+    while dist_formula_2d(pos, path[lastLooked + 1]) < look_ahead_distance:
+        lastLooked += 1
 
-    lastLooked = trav
+    lastLooked += 1
     # finding distance between us and where we want to go
 
     # making heading 2d, normalizing
     heading = velocity[:2]
-    unit_heading = heading / np.linalg.norm(heading)
+    unit_heading = normalize(heading)
 
     # creating y-axis basis vector
     unit_y_axis = [0, 1]
@@ -84,7 +79,7 @@ def pure_pursuit(pos, look_ahead_distance, velocity):
     angle = np.arccos(dot_product)
 
     # modifying our location to (0,0)
-    point = np.subtract(trav.get_value()[:2], pos[:2])
+    point = np.subtract(path[lastLooked][:2], pos[:2])
     point = np.ndarray.tolist(point)
 
     # rotating basis vectors so that payload faces in [0,1] direction
