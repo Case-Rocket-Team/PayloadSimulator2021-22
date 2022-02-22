@@ -117,7 +117,7 @@ def main(pos, look_ahead_distance, velocity):
 
         waypoints[i] = coords
 
-    return waypoints, bank_angle \\
+    return waypoints, bank_angle
 
 
 if __name__ == "__main__":
