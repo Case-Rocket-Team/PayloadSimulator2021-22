@@ -2,7 +2,7 @@
 # Kyler Rosen
 # v0.1 Finished Path Algorithm
 
-from math import sqrt, pi, floor
+from math import sqrt, pi, floor, asin
 
 # these are just for plotting
 from mpl_toolkits.mplot3d import Axes3D
@@ -110,7 +110,7 @@ def pure_pursuit(pos, look_ahead_distance, velocity):
     # determines bank angle off of
     # TODO: CITE TEXTBOOK
     #if there is an error, it is here probably. Recheck photo
-    bank_angle = math.asin((velocity[0] ^ 2)/(9.81 * radius))
+    bank_angle = asin((velocity[0] ^ 2)/(9.81 * radius))
 
     # TODO: determine number of waypoints to return
     num_points_created = 10
@@ -124,9 +124,9 @@ def pure_pursuit(pos, look_ahead_distance, velocity):
         # Calculating the target point within rotated coordinates
         target_rot_y = rot_y * (i / (num_points_created-1))
         if(rot_x) > 0:
-            target_rot_x = radius - math.sqrt((radius ** 2) - (target_rot_y ** 2))
+            target_rot_x = radius - sqrt((radius ** 2) - (target_rot_y ** 2))
         else:
-            target_rot_x = -(radius - math.sqrt((radius ** 2) - (target_rot_y ** 2)))
+            target_rot_x = -(radius - sqrt((radius ** 2) - (target_rot_y ** 2)))
 
 
         # print("X: ", target_rot_x)
