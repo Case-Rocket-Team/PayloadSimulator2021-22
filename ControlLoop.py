@@ -121,8 +121,6 @@ def generate_helix(loop_num, step_per_circle, x_0, y_0, r, starting_height, path
         generate_helix(loop_num, step_per_circle, x_0, y_0, r, z, path, [x, y], dz_dr, clockwise)
 
 
-
-
 def generate_straight_path(pos, arc_length, dz_dr, straight_path_direction, tangent_point, norm_straight_path_direction, path):
     print("")
     print("Generating a straight path: ")
@@ -258,6 +256,7 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
     # https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
     length = arc_length + dist_formula_2d(tangent_point, target_loc)
     expected_height = pos[2] - length * dz_dr
+    
     if expected_height < 0:
         return path
 
