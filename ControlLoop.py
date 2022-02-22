@@ -35,6 +35,9 @@ def dead_reckon(gps, imu, pressure, pos_prev, vel_prev, accel_prev):
         vel_prev (Vec3[]): a history of the previous velocities
         accel_prev (Vec3[]): a history of the previous accelerations
 
+    Paul: position estimate from acceleration
+        calculate reimann sum on accel twice
+
     Returns:
         pos_list: list of positions with new position appended
         vel_list: list of velocities with new velocity appended
