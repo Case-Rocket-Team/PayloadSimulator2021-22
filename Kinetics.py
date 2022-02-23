@@ -17,13 +17,7 @@ _ground_wind_speed_x = -5
 _ground_wind_speed_y = 1
 
 
-<<<<<<< HEAD
 def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed ):
-=======
-def simulate_flight(
-    mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed_func, previous_wind_speeds
-):
->>>>>>> 007cfe79047f4af150ae7bf61182277a295bfb94
     """calculates kinetics of the system, using Eulers method, for a given timestep with applied forces.
 
     Args:
