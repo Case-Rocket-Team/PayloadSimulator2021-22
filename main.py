@@ -14,6 +14,7 @@ _timestep = .1
 
 sim_kinematics = [[],[],[],[]]
 
+
 with open('data.csv', mode='w') as data:
         data_write = csv.writer(data, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         data_write.writerow(['Bank Angle', 'Glide Angle', 'Turn Radius'])
@@ -35,5 +36,6 @@ while heading[2] < 0.366519:
             break
 
     heading[2] += 0.01
+
 
 graph_data(sim_kinematics, _timestep, 0, 0, 0)
