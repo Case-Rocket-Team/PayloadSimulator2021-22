@@ -61,7 +61,7 @@ def simulate_flight(
 
     accel = (new_vel - vel) / timestep
 
-    return pos, heading, new_vel, vel_mag, accel
+    return pos, heading, new_vel, vel_mag, accel, azimuth_angle_roc
 
 
 # Calculates lift force on the vehicle

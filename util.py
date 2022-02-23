@@ -4,6 +4,7 @@ import numpy as np
 import math
 
 # Geometric or environment constants
+# TODO: Ben get values for these constants from the solidworks model
 _gravity = 9.81
 _effective_cord_length = -1 # l + L, overall cord length - the part inside the risers
 _por_to_slider_distance = -1 # d
@@ -58,12 +59,16 @@ def graph_data(sim_kinetics, dt, noise_data, pred_kinetics, path, **graph_params
 	x_pos = []
 	y_pos = []
 	z_pos = []
+	glide_angles = []
+	bank_angles = []
 	for n in range(0, len(sim_kinetics[0])):
 		x_pos.append(sim_kinetics[0][n][0])
 		y_pos.append(sim_kinetics[0][n][1])
 		z_pos.append(sim_kinetics[0][n][2])
+		glide_angles.append(math.degrees(sim_kinetics[1][n][2]))
+		bank_angles.append(math.degrees(sim_kinetics[1][n][1]))
 
-	for i in range(0, len(sim_kinetics[0])):
+	for i in range(0, len(sim_kinetics[0])-1):
 		time.append(time[i] + dt)
 
 	plt.plot(x_pos, z_pos)
@@ -76,6 +81,24 @@ def graph_data(sim_kinetics, dt, noise_data, pred_kinetics, path, **graph_params
 	plt.xlabel("X Position (m)")
 	plt.ylabel("Y Position (m)")
 	plt.title("Y vs X Position")
+
+	plt.figure()
+	plt.plot(time, glide_angles)
+	plt.xlabel("Time (s)")
+	plt.ylabel("Glide Angle (deg)")
+	plt.title("Glide Angle vs Time")
+
+	plt.figure()
+	plt.plot(time, bank_angles)
+	plt.xlabel("Time (s)")
+	plt.ylabel("Bank Angle (deg)")
+	plt.title("Bank Angle vs Time")
+
+	plt.figure()
+	plt.plot(glide_angles, bank_angles)
+	plt.xlabel("Glide Angle (deg)")
+	plt.ylabel("Bank Angle (deg)")
+	plt.title("Bank Angle vs Glide Angle")
 
 	fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
 	ax.plot(x_pos, y_pos, z_pos)
@@ -125,6 +148,7 @@ def convert_bank_to_deflect(heading, vel, span):
 def convert_deflect_to_servo(heading, vel):
 	"""This function takes the current bank angle, calcuates the desired deflection angle of the 
 		parafoil, and converts to the servo angle needed to achieve that deflection angle.
+
 
 	Args:
 		heading ([Vec3]): an array containing the heading of the craft in the format [azimuth, bank_angle, glide_angle] 
