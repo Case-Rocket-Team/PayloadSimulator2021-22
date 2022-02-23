@@ -12,9 +12,15 @@ _chord = 0.508
 _area = _span * _chord
 _wind_speed_x = 0.0
 _wind_speed_y = 0.0
-_air_density = 1.225
-_ground_wind_speed_x = -5
-_ground_wind_speed_y = 1
+_airConditions = {
+        #constants
+        'MolarMass': 0.0289652,
+        'R': 8.31446,
+        'T': 288.15,
+        'L': 0.0065,
+        'ro': 1.225,
+    }
+
 
 
 def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed ):
@@ -58,7 +64,8 @@ def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep, air_
 
     accel = (new_vel - vel) / timestep
 
-    return pos, heading, new_vel, vel_mag, accel, previous_wind_speeds
+    return pos, heading, new_vel, vel_mag, accel, azimuth_angle_roc
+
 
 
 # Calculates lift force on the vehicle
@@ -87,9 +94,22 @@ def calc_roc_azimuth(lift_force, heading, mass, velocity):
     return lift_force * math.sin(heading[1]) / (mass * velocity * math.cos(heading[2]))
 
 
-# placeholder that just gives the same air density over and over
+
+# placeholder that just gives the same windspeed over and over
+def get_wind_speed(pos):
+    return _wind_speed_x, _wind_speed_y
+
+
+# Air density updater, given altitude z gives air density, isothermal
 def get_air_density(pos):
-    return _air_density
+    M = _airConditions['MolarMass']
+    R = _airConditions['R']
+    T = _airConditions['T']
+    L = _airConditions['L']
+    ro = _airConditions['ro']
+
+    # \rho =\rho _{0}*e^{-\left (\frac{gMh}{RT_{0}}-\frac{Lh}{T_{0}}  \right )}
+    return ro * math.exp( ((- _gravity * M * pos[2]) / (R * T)) - (L * pos[2] / T) )
 
 
 def calc_velocity(current_velocity, glide_angle, azimuth_angle, drag_force, mass, dt):
