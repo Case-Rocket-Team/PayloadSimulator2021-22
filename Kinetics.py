@@ -3,17 +3,13 @@ import math
 import json
 
 
-
 # TODO: pull these from JSON
-file_consts = open('model_parameters.json')
-consts = json.load(file_consts)
-_gravity = consts['gravity']
-_lift_coefficient = consts['lift_coefficient']
-_drag_coefficient = consts['drag_coefficient']
-_span = consts['span']
-_chord = consts['chord']
+_gravity = 9.81
+_lift_coefficient = 0.449
+_drag_coefficient = 0.162
+_span = 1.016
+_chord = 0.508
 _area = _span * _chord
-
 _wind_speed_x = 0.0
 _wind_speed_y = 0.0
 _air_density = 1.225
@@ -21,14 +17,13 @@ _ground_wind_speed_x = -5
 _ground_wind_speed_y = 1
 
 
-# def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed ):
-
-# def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed_func, previous_wind_speeds ):
-_wind_speed_x = consts['wind_speed_x']
-_wind_speed_y = consts['wind_speed_y']
-_air_density = consts['air_density']
-
+<<<<<<< HEAD
 def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed ):
+=======
+def simulate_flight(
+    mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed_func, previous_wind_speeds
+):
+>>>>>>> 007cfe79047f4af150ae7bf61182277a295bfb94
     """calculates kinetics of the system, using Eulers method, for a given timestep with applied forces.
 
     Args:
@@ -185,6 +180,8 @@ def calc_heading(current_heading, glide_angle_roc, azimuth_roc, dt):
     # we don't update bank_angle, just the other two
     heading_change = np.array([azimuth_angle_change, 0.0, glide_angle_change])
 
+    return current_heading + heading_change
+
 def get_wind_speed(current_pos, ground_wind_speed_x, ground_wind_speed_y, previous_wind_speeds=None, alpha=0.143):
     """
     Calculates the wind speed at a given height using the formula found here: https://en.wikipedia.org/wiki/Wind_profile_power_law
@@ -222,6 +219,4 @@ def get_wind_speed(current_pos, ground_wind_speed_x, ground_wind_speed_y, previo
     return (gusted_wind_speed_x, gusted_wind_speed_y)
 
 def get_zero_wind(current_pos, ground_wind_speed, previous_wind_speeds=None):
-
-    return current_heading + heading_change
-
+    return(0, 0)
