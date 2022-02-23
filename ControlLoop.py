@@ -12,40 +12,6 @@ import numpy as np
 
 lastLooked = None
 
-class Node:
-    # Function to initialise the node object
-    def __init__(self, data, next_node=None):
-        self.data = data  # Assign data
-        self.next = next_node  # Initialize next as null
-
-    def get_next(self):
-        return self.next
-
-    def get_value(self):
-        return self.data
-
-
-def dead_reckon(gps, imu, pressure, pos_prev, vel_prev, accel_prev):
-    """integrate position from of the craft from sensor data
-
-    Args:
-        gps (Vec2): the generated noisy gps data
-        imu (Vec3): the generated noisy imu accelerations
-        pressure (float): the generated noisy altitude data
-        pos_prev (Vec3[]): a history of the previous positions
-        vel_prev (Vec3[]): a history of the previous velocities
-        accel_prev (Vec3[]): a history of the previous accelerations
-
-    Paul: position estimate from acceleration
-        calculate reimann sum on accel twice
-
-    Returns:
-        pos_list: list of positions with new position appended
-        vel_list: list of velocities with new velocity appended
-        accel_list: list of accelerations with new acceleration appended
-    """
-    return pos_list, vel_list, accel_list
-
 
 def dist_formula_2d(pos, point):
     return sqrt((pos[0] - point[0]) ** 2 + (pos[1] - point[1]) ** 2)  # + (pos.getZ() - point.getZ()) ** 2)
@@ -104,7 +70,7 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path):
 
     # determines bank angle off of
     # TODO: CITE TEXTBOOK
-    #if there is an error, it is here probably. Recheck photo
+    # if there is an error, it is here probably. Recheck photo
     bank_angle = asin((velocity[0] ^ 2)/(9.81 * radius))
 
     # TODO: determine number of waypoints to return
