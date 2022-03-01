@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-lastLooked = None
+lastLooked = 0
 
 
 def dist_formula_2d(pos, point):
@@ -71,7 +71,7 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path):
     # determines bank angle off of
     # TODO: CITE TEXTBOOK
     # if there is an error, it is here probably. Recheck photo
-    bank_angle = asin((velocity[0] ^ 2)/(9.81 * radius))
+    bank_angle = asin((velocity[0] ** 2)/(9.81 * radius))
 
     # TODO: determine number of waypoints to return
     num_points_created = 10

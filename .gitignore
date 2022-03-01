@@ -152,3 +152,4 @@ cython_debug/
 .idea/workspace.xml
 *.xml
 .idea/workspace.xml
+data.csv

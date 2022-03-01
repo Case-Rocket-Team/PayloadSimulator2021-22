@@ -82,13 +82,13 @@ def main(pos, look_ahead_distance, velocity):
 
     # determines bank angle off of
     # TODO: CITE TEXTBOOK
-    #if there is an error, it is here probably. Recheck photo
+    # if there is an error, it is here probably. Recheck photo
     bank_angle = math.asin((velocity[0] ^ 2)/(9.81 * radius))
 
     # TODO: determine number of waypoints to return
     num_points_created = 10
-    # CREATES WAYPOINTS
 
+    # CREATES WAYPOINTS
     waypoints = [0] * num_points_created
 
     # Create waypoint in the transformed coordinates. Then, use the inverse of the rotation matrix to rotate it back
@@ -100,7 +100,6 @@ def main(pos, look_ahead_distance, velocity):
             target_rot_x = radius - math.sqrt((radius ** 2) - (target_rot_y ** 2))
         else:
             target_rot_x = -(radius - math.sqrt((radius ** 2) - (target_rot_y ** 2)))
-
 
         # print("X: ", target_rot_x)
         # print("Y: ", target_rot_y)

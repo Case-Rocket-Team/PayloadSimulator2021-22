@@ -55,8 +55,8 @@ def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep, air_
 
     heading = calc_heading(heading, glide_angle_roc, azimuth_angle_roc, timestep)
     new_vel, vel_mag = calc_velocity(
-        vel_mag, heading[2], heading[0], drag, mass, timestep
-    )
+        vel_mag, heading[2], heading[0], drag, mass, timestep)
+
     pos = calc_position(pos, vel, wind_speed_x, wind_speed_y, timestep)
 
     accel = (new_vel - vel) / timestep

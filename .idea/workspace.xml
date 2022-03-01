@@ -8,6 +8,8 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ControlLoop.py" beforeDir="false" afterPath="$PROJECT_DIR$/ControlLoop.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Kinetics.py" beforeDir="false" afterPath="$PROJECT_DIR$/Kinetics.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PurePursuitCourseCorrection/pathCorrection.py" beforeDir="false" afterPath="$PROJECT_DIR$/PurePursuitCourseCorrection/pathCorrection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -139,9 +141,9 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/ControlLoop.py</url>
-          <line>214</line>
-          <option name="timeStamp" value="48" />
+          <url>file://$PROJECT_DIR$/main.py</url>
+          <line>26</line>
+          <option name="timeStamp" value="53" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
