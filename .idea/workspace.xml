@@ -7,8 +7,6 @@
     <list default="true" id="d665f3a4-9855-41a2-8fcc-91ce1607edd1" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ControlLoop.py" beforeDir="false" afterPath="$PROJECT_DIR$/ControlLoop.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Kinetics.py" beforeDir="false" afterPath="$PROJECT_DIR$/Kinetics.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PurePursuitCourseCorrection/pathCorrection.py" beforeDir="false" afterPath="$PROJECT_DIR$/PurePursuitCourseCorrection/pathCorrection.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/data.csv" beforeDir="false" afterPath="$PROJECT_DIR$/data.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>

@@ -13,7 +13,7 @@ def main():
     heading = [0, 0, 0]
     applied_acceleration = np.zeros(3)
     _mass = 4.249
-    _time_step = .1
+    _time_step = 60
     look_ahead_distance = 50
 
     path = gen_path(pos, vel, target)
@@ -27,7 +27,7 @@ def main():
     time = 0
 
     while pos[2] > 0:
-        curve, bank_angle = pure_pursuit(pos, look_ahead_distance, np.ndarray.tolist(vel), path)
+        curve, bank_angle = pure_pursuit(pos, look_ahead_distance, np.ndarray.tolist(vel), path, heading[2])
         heading[1] = bank_angle
 
         time += _time_step
@@ -40,6 +40,7 @@ def main():
 
         print("Heading", heading[2])
         print("Velocity", vel_mag)
+
         if time >= 100:
             with open('data.csv', mode='w') as data:
                 data_write = csv.writer(data, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)

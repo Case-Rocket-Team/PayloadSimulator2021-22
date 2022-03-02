@@ -2,7 +2,7 @@
 # Kyler Rosen
 # v0.1 Finished Path Algorithm
 
-from math import sqrt, pi, floor, asin
+from math import sqrt, pi, floor, asin, cos
 
 # these are just for plotting
 from mpl_toolkits.mplot3d import Axes3D
@@ -17,7 +17,7 @@ def dist_formula_2d(pos, point):
     return sqrt((pos[0] - point[0]) ** 2 + (pos[1] - point[1]) ** 2)  # + (pos.getZ() - point.getZ()) ** 2)
 
 
-def pure_pursuit(pos, look_ahead_distance, velocity, path):
+def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
     # TODO: Last looked is a global variable that is the head of an updated linked list storing the optimal path
     global lastLooked
 
@@ -69,9 +69,13 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path):
         return [], None
 
     # determines bank angle off of
+
+    #normalize velocity vector
+    length_velocity = dist_formula_2d([0, 0], velocity[:2])
+
     # TODO: CITE TEXTBOOK
-    # if there is an error, it is here probably. Recheck photo
-    bank_angle = asin((velocity[0] ** 2)/(9.81 * radius))
+    bank_angle = asin(((length_velocity * cos(glide_angle)) ** 2)/(9.81 * radius))
+
 
     # TODO: determine number of waypoints to return
     num_points_created = 10
