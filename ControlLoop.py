@@ -21,13 +21,13 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
     # TODO: Last looked is a global variable that is the head of an updated linked list storing the optimal path
     global lastLooked
 
-    # go from the last point we were looking at to the point closest to the payload
-    while dist_formula_2d(pos, path[lastLooked + 1]) < dist_formula_2d(pos, path[lastLooked]):
-        lastLooked += 1
-
-    # go from point inside circle (closest to payload) to the farthest point within the lookahead distace
-    while dist_formula_2d(pos, path[lastLooked + 1]) < look_ahead_distance:
-        lastLooked += 1
+    # # go from the last point we were looking at to the point closest to the payload
+    # while dist_formula_2d(pos, path[lastLooked + 1]) < dist_formula_2d(pos, path[lastLooked]):
+    #     lastLooked += 1
+    #
+    # # go from point inside circle (closest to payload) to the farthest point within the lookahead distace
+    # while dist_formula_2d(pos, path[lastLooked + 1]) < look_ahead_distance:
+    #     lastLooked += 1
 
     lastLooked += 1
     # finding distance between us and where we want to go
@@ -70,11 +70,11 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
 
     # determines bank angle off of
 
-    #normalize velocity vector
-    length_velocity = dist_formula_2d([0, 0], velocity[:2])
+    # normalize velocity vector
+    horizontal_velocity_magnitude = dist_formula_2d([0, 0], velocity[:2])
 
     # TODO: CITE TEXTBOOK
-    bank_angle = asin(((length_velocity * cos(glide_angle)) ** 2)/(9.81 * radius))
+    bank_angle = asin(((horizontal_velocity_magnitude * cos(glide_angle)) ** 2)/(9.81 * radius))
 
 
     # TODO: determine number of waypoints to return
@@ -90,6 +90,7 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
         target_rot_y = rot_y * (i / (num_points_created-1))
         if(rot_x) > 0:
             target_rot_x = radius - sqrt((radius ** 2) - (target_rot_y ** 2))
+
         else:
             target_rot_x = -(radius - sqrt((radius ** 2) - (target_rot_y ** 2)))
 
@@ -100,11 +101,12 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
         # Translating coordinates back to cartesian coordinates
         cartesian_x = (target_rot_x * np.cos(-angle)) - (target_rot_y * np.sin(-angle))
         cartesian_y = (target_rot_x * -np.sin(-angle)) + (target_rot_y * np.cos(-angle))
+        cartesian_z = 0
 
         # print("Cartesian X: ", cartesian_x)
         # print("Cartesian Y: ", cartesian_y)
 
-        coords = np.add([cartesian_x, cartesian_y], pos[:2])
+        coords = np.add([cartesian_x, cartesian_y, cartesian_z], pos)
         coords = np.ndarray.tolist(coords)
 
         waypoints[i] = coords
@@ -136,7 +138,6 @@ def generate_helix(loop_num, step_per_circle, x_0, y_0, r, starting_height, path
     # rewrite of law of cosines, see attatched
     # https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
 
-
     theta_offset = np.arccos(1 - dist_formula_2d([x_0 + r, y_0], starting_point) ** 2 / (2 * r ** 2))
 
     if starting_point[1] > y_0:
@@ -161,7 +162,7 @@ def generate_helix(loop_num, step_per_circle, x_0, y_0, r, starting_height, path
     error_margin = 10
 
     if target_point is not None:
-        if dist_formula_2d([x, y, z], target_point) < error_margin:
+        if True or dist_formula_2d([x, y, z], target_point) < error_margin:
             return
 
         theta = loop_num * 2 * pi
@@ -169,6 +170,8 @@ def generate_helix(loop_num, step_per_circle, x_0, y_0, r, starting_height, path
         loop_num = theta / (2 * pi)
 
         generate_helix(loop_num, step_per_circle, x_0, y_0, r, z, path, [x, y], dz_dr, clockwise)
+
+# this is an addition to the code stuff that kyler showed me and there's no more double letters. keyboard test.
 
 
 def generate_straight_path(pos, arc_length, dz_dr, straight_path_direction, tangent_point, norm_straight_path_direction, path):
@@ -203,7 +206,7 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
     path = []
     dz_dr = 1/2.7
     step_per_circle = 50
-    vel = normalize(vel)
+    vel = normalize(vel[:2])
     print(f"vel: {vel}")
 
     print(f"\n\nTurning Towards Target: ")
@@ -338,18 +341,16 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
     return path
 
 
-def plotting():
-    path = gen_path([0, 0, 5000], [1, -1, 0], [-500, 500, 0])
-    print(path)
-
-    path_x = [item[0] for item in path[:-1]]
-    path_y = [item[1] for item in path[:-1]]
-    path_z = [item[2] for item in path[:-1]]
-
+def plot_path(paths):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    ax.plot(path_x, path_y, path_z)
+    for path in paths:
+        path_x = [item[0] for item in path[:-1]]
+        path_y = [item[1] for item in path[:-1]]
+        path_z = [item[2] for item in path[:-1]]
+
+        ax.plot(path_x, path_y, path_z)
 
     axes = plt.gca()
 
@@ -358,7 +359,7 @@ def plotting():
     axes.set_zlabel('Z')
 
     min_coord = -3000
-    max_coord = 2000
+    max_coord = 4000
     step = (max_coord - min_coord) // 10
 
     x_ticks = np.arange(min_coord, max_coord, step)
@@ -371,5 +372,11 @@ def plotting():
     plt.show()
 
 
+def tester():
+    path = gen_path([0, 0, 5000], [0, 20, -20], [-2342, 3534, 0])
+    print(path)
+    plot_path([path])
+
+
 if __name__ == "__main__":
-    plotting()
+    tester()
