@@ -22,7 +22,7 @@ _airConditions = {
     }
 
 
-def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep, air_density, wind_speed ):
+def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep):
     """calculates kinetics of the system, using Eulers method, for a given timestep with applied forces.
 
     Args:
@@ -44,14 +44,14 @@ def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep, air_
         vel_mag (float): the overall magitude of the velocity after eulers method is applied.
         accel (Vec3): the total acceleration after applying wind, gravity, lift and drag.
     """
-    air_density = air_density(pos)  # TODO: get from jenny
+    air_density = get_air_density(pos)
     drag = calc_drag_force(_drag_coefficient, air_density, vel_mag, _area)
     lift = calc_lift_force(_lift_coefficient, air_density, vel_mag, _area)
 
     glide_angle_roc = calc_roc_glide_angle(lift, heading, mass, vel_mag)
     azimuth_angle_roc = calc_roc_azimuth(lift, heading, mass, vel_mag)
 
-    wind_speed_x, wind_speed_y = wind_speed(pos)
+    wind_speed_x, wind_speed_y = get_wind_speed(pos)
 
     heading = calc_heading(heading, glide_angle_roc, azimuth_angle_roc, timestep)
     new_vel, vel_mag = calc_velocity(
@@ -230,4 +230,4 @@ def calc_heading(current_heading, glide_angle_roc, azimuth_roc, dt):
 
 
 def get_zero_wind(current_pos, ground_wind_speed, previous_wind_speeds=None):
-    return(0, 0)
+    return 0, 0

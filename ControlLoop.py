@@ -21,15 +21,25 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
     # TODO: Last looked is a global variable that is the head of an updated linked list storing the optimal path
     global lastLooked
 
-    # # go from the last point we were looking at to the point closest to the payload
-    # while dist_formula_2d(pos, path[lastLooked + 1]) < dist_formula_2d(pos, path[lastLooked]):
-    #     lastLooked += 1
-    #
-    # # go from point inside circle (closest to payload) to the farthest point within the lookahead distace
-    # while dist_formula_2d(pos, path[lastLooked + 1]) < look_ahead_distance:
-    #     lastLooked += 1
+    # go from the last point we were looking at to the point closest to the payload
+    while dist_formula_2d(pos, path[lastLooked + 1]) < dist_formula_2d(pos, path[lastLooked]):
+        lastLooked += 1
 
-    lastLooked += 1
+    acceptable_horizontal_error = look_ahead_distance
+    acceptable_vertical_error = 40
+
+    # frac{(x - x_0)^2}{a^2} + frac{(y - y_0)^2}{b^2} + frac{(z - z_0)^2}{c^2} = 1
+
+    if (path[lastLooked][0] - pos[0]) ** 2 / acceptable_horizontal_error ** 2 + \
+            (path[lastLooked][1] - pos[1]) ** 2 / acceptable_horizontal_error ** 2 + \
+            (path[lastLooked][2] - pos[2]) ** 2 / acceptable_vertical_error ** 2 > 1:
+        return [], None
+
+    # go from point inside circle (closest to payload) to the farthest point within the lookahead distace
+    while dist_formula_2d(pos, path[lastLooked + 1]) < look_ahead_distance:
+        lastLooked += 1
+
+    print(lastLooked, path[lastLooked])
     # finding distance between us and where we want to go
 
     # making heading 2d, normalizing
@@ -65,7 +75,7 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
     min_turn_rad = 69.4
 
     # stops running if we are so far off the path that we need too tight of a radius. They need to rerun algorithm
-    if radius < min_turn_rad:
+    if abs(radius) < min_turn_rad:
         return [], None
 
     # determines bank angle off of
@@ -134,7 +144,8 @@ def normalize(v):
 
 
 # generates a helical pattern downwards
-def generate_helix(loop_num, step_per_circle, x_0, y_0, r, starting_height, path, starting_point, dz_dr, clockwise, target_point = None):
+def generate_helix(loop_num, step_per_circle, x_0, y_0, r, starting_height, path, starting_point, dz_dr, clockwise,
+                   target_point=None):
     # rewrite of law of cosines, see attatched
     # https://math.stackexchange.com/questions/830413/calculating-the-arc-length-of-a-circle-segment
 
