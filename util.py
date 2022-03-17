@@ -22,7 +22,7 @@ _k2 = 2 * _por_to_slider_distance * _servo_arm_length
 _k3 = _gravity * _parafoil_span / (_yaw_based_constant * _cos_glide_angle)
 
 
-def fuzzifier(pos, accel, gps_noise=0.01,imu_noise=0.01,altimeter_noise=0.01):
+def fuzzifier(pos, accel, gps_noise=0.01, imu_noise=0.01, altimeter_noise=0.01):
 	"""simulates sensor output by adding noise and formatting into string.
 
 	Args:

@@ -63,6 +63,8 @@ def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep):
 
     return pos, heading, new_vel, vel_mag, accel, azimuth_angle_roc
 
+# The following functions are found in:
+# https://drive.google.com/file/d/1t1pA3ntggVvg41jwH3S1QRhRztN0x8_9/view?usp=sharing
 
 # Calculates lift force on the vehicle
 def calc_lift_force(_lift_coefficient, air_density, velocity, vehicle_area):
@@ -79,15 +81,13 @@ def calc_drag_force(_drag_coefficient, air_density, velocity, vehicle_area):
 # Calculate rate of change of the glide angle
 def calc_roc_glide_angle(lift_force, heading, mass, velocity):
     # \dot{\gamma }=\frac{(L*cos\sigma -W*cos\gamma )}{mV}
-    return (
-        (lift_force * math.cos(heading[1]) - (mass * _gravity * math.cos(heading[2])))
-    ) / (mass * velocity)
+    return (lift_force * math.cos(heading[1]) - mass * _gravity * math.cos(heading[2])) / (mass * velocity)
 
 
 # Calculate rate of change of the azimuth angle
 def calc_roc_azimuth(lift_force, heading, mass, velocity):
     # \dot{\psi} = \frac{L*sin\sigma }{mVcos\gamma}
-    return lift_force * math.sin(heading[1]) / (mass * velocity * math.cos(heading[2]))
+    return (lift_force * math.sin(heading[1])) / (mass * velocity * math.cos(heading[2]))
 
 
 # placeholder that just gives the same windspeed over and over

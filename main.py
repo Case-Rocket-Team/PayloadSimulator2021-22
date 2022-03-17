@@ -1,6 +1,6 @@
 from Kinetics import simulate_flight, get_wind_speed
 import numpy as np
-from ControlLoop import pure_pursuit, gen_path, plot_path
+from ControlLoop import pure_pursuit, gen_path, plot_path, generate_straight_path, normalize
 from util import graph_data
 import csv
 
@@ -44,9 +44,19 @@ def main():
         time += _time_step
         pos, heading, vel, vel_mag, accel, azimuth_angle_roc = simulate_flight(_mass, pos, vel, vel_mag, heading,
                                                                                applied_acceleration, _time_step)
+
+
+        velocity_trajectory = []
+        generate_straight_path(pos, 1/2.7, vel*100, normalize(vel), velocity_trajectory)
+
+        plot_path([path, curve, velocity_trajectory])
+
         sim_kinematics[0].append(pos)
         sim_kinematics[1].append(heading)
-        turn_radius = abs((vel[0]/azimuth_angle_roc))
+
+        # calculated by:
+        # https://app.knovel.com/web/view/khtml/show.v/rcid:kpPADSMDC1/cid:kt010RIPL3/viewerType:khtml//root_slug:precision-aerial-delivery/url_slug:gliding-parachute-performance?kpromoter=federation&page=46&view=collapsed&zoom=1
+        turn_radius = abs((sqrt(vel[0]**2 + vel[1]**2)/azimuth_angle_roc))
 
         print("Heading", heading[2])
         print("Velocity", vel_mag)

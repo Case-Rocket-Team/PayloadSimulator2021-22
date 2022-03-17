@@ -184,19 +184,18 @@ def generate_helix(loop_num, step_per_circle, x_0, y_0, r, starting_height, path
 # this is an addition to the code stuff that kyler showed me and there's no more double letters. keyboard test.
 
 
-def generate_straight_path(pos, arc_length, dz_dr, straight_path_direction, tangent_point, norm_straight_path_direction, path):
+def generate_straight_path(starting_point, dz_dr, straight_path_direction, norm_straight_path_direction, path):
     print("")
     print("Generating a straight path: ")
     # generate path between the tangent point and the target point
     step = 1
-    height = pos[2] - arc_length * dz_dr
-    print(f"Height: {height}")
+    print(f"Height: {starting_point[2]}")
 
     for i in range(0, floor(dist_formula_2d([0, 0], straight_path_direction)), step):
-        point = tangent_point[:2] + i * norm_straight_path_direction
+        point = starting_point[:2] + i * norm_straight_path_direction[:2]
 
         point = np.ndarray.tolist(point)
-        point = [point[0], point[1], height - i * dz_dr]
+        point = [point[0], point[1], starting_point[2] - i * dz_dr]
         path.append(point)
 
 
@@ -310,7 +309,9 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
     straight_path_direction = np.subtract(target_loc[:2], tangent_point)
     norm_straight_path_direction = normalize(straight_path_direction)
 
-    generate_straight_path(pos, arc_length, dz_dr, straight_path_direction, tangent_point, norm_straight_path_direction, path)
+    height = pos[2] - arc_length * dz_dr
+    tangent_point = [tangent_point[0], tangent_point[1], height]
+    generate_straight_path(tangent_point, dz_dr, straight_path_direction, norm_straight_path_direction, path)
 
     zach_leclaire = "🤰"
 
