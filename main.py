@@ -6,7 +6,7 @@ import csv
 
 
 def main():
-    pos = np.array([0, 0, 1000])
+    pos = np.array([0, 0, 5000])
     vel = np.array([-10, 10, -2])
     vel_mag = np.linalg.norm(vel)
     target = [700, 700, 0]

@@ -20,13 +20,14 @@ def dist_formula_2d(pos, point):
 def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
     # TODO: Last looked is a global variable that is the head of an updated linked list storing the optimal path
     global lastLooked
+    dz_dr = 1 / 2.7
 
     # go from the last point we were looking at to the point closest to the payload
     while dist_formula_2d(pos, path[lastLooked + 1]) < dist_formula_2d(pos, path[lastLooked]):
         lastLooked += 1
 
     acceptable_horizontal_error = look_ahead_distance
-    acceptable_vertical_error = 40
+    acceptable_vertical_error = look_ahead_distance * dz_dr
 
     # frac{(x - x_0)^2}{a^2} + frac{(y - y_0)^2}{b^2} + frac{(z - z_0)^2}{c^2} = 1
 
@@ -39,7 +40,7 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
     while dist_formula_2d(pos, path[lastLooked + 1]) < look_ahead_distance:
         lastLooked += 1
 
-    print(lastLooked, path[lastLooked])
+
     # finding distance between us and where we want to go
 
     # making heading 2d, normalizing
@@ -59,8 +60,8 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
     point = np.ndarray.tolist(point)
 
     # rotating basis vectors so that payload faces in [0,1] direction
-    rot_x = (point[0] * np.cos(angle)) - (point[1] * np.sin(angle))
-    rot_y = (point[0] * np.sin(angle)) + (point[1] * np.cos(angle))
+    rot_x = (point[0] * np.cos(angle)) + (point[1] * np.sin(angle))
+    rot_y = (-point[0] * np.sin(angle)) + (point[1] * np.cos(angle))
 
     # if x is too small, radius is too large. So, increase the size of x slightly
     # adjust this as needed
@@ -86,7 +87,6 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
     # TODO: CITE TEXTBOOK
     bank_angle = asin(((horizontal_velocity_magnitude * cos(glide_angle)) ** 2)/(9.81 * radius))
 
-
     # TODO: determine number of waypoints to return
     num_points_created = 10
     # CREATES WAYPOINTS
@@ -98,20 +98,19 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
     for i in range(num_points_created):
         # Calculating the target point within rotated coordinates
         target_rot_y = rot_y * (i / (num_points_created-1))
-        if(rot_x) > 0:
+        if rot_x > 0:
             target_rot_x = radius - sqrt((radius ** 2) - (target_rot_y ** 2))
 
         else:
             target_rot_x = -(radius - sqrt((radius ** 2) - (target_rot_y ** 2)))
 
-
         # print("X: ", target_rot_x)
         # print("Y: ", target_rot_y)
 
         # Translating coordinates back to cartesian coordinates
-        cartesian_x = (target_rot_x * np.cos(-angle)) - (target_rot_y * np.sin(-angle))
-        cartesian_y = (target_rot_x * -np.sin(-angle)) + (target_rot_y * np.cos(-angle))
-        cartesian_z = 0
+        cartesian_x = (target_rot_x * np.cos(-angle)) + (target_rot_y * np.sin(-angle))
+        cartesian_y = (-target_rot_x * np.sin(-angle)) + (target_rot_y * np.cos(-angle))
+        cartesian_z = dist_formula_2d([0, 0], [cartesian_x, cartesian_y]) * -dz_dr
 
         # print("Cartesian X: ", cartesian_x)
         # print("Cartesian Y: ", cartesian_y)
@@ -189,7 +188,7 @@ def generate_straight_path(pos, arc_length, dz_dr, straight_path_direction, tang
     print("")
     print("Generating a straight path: ")
     # generate path between the tangent point and the target point
-    step = 10
+    step = 1
     height = pos[2] - arc_length * dz_dr
     print(f"Height: {height}")
 
@@ -216,7 +215,7 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
     """
     path = []
     dz_dr = 1/2.7
-    step_per_circle = 50
+    step_per_circle = 500
     vel = normalize(vel[:2])
     print(f"vel: {vel}")
 
