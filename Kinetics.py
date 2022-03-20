@@ -44,21 +44,33 @@ def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep):
         vel_mag (float): the overall magitude of the velocity after eulers method is applied.
         accel (Vec3): the total acceleration after applying wind, gravity, lift and drag.
     """
+
+    # Update air density at current position
     air_density = get_air_density(pos)
+
+    # Update drag and lift for the parafoil based on the vehicle state and the current air density
     drag = calc_drag_force(_drag_coefficient, air_density, vel_mag, _area)
     lift = calc_lift_force(_lift_coefficient, air_density, vel_mag, _area)
 
+    # Update rate of change of the glide angle and azimuth angle
     glide_angle_roc = calc_roc_glide_angle(lift, heading, mass, vel_mag)
     azimuth_angle_roc = calc_roc_azimuth(lift, heading, mass, vel_mag)
 
+    # Update wind speed based on vehicle position 
+    # TODO: Add dynamic wind back in once working
     wind_speed_x, wind_speed_y = get_wind_speed(pos)
 
+    # Update heading
     heading = calc_heading(heading, glide_angle_roc, azimuth_angle_roc, timestep)
+
+    # Update velocity
     new_vel, vel_mag = calc_velocity(
         vel_mag, heading[2], heading[0], drag, mass, timestep)
 
+    # Update position
     pos = calc_position(pos, vel, wind_speed_x, wind_speed_y, timestep)
 
+    # Update acceleration
     accel = (new_vel - vel) / timestep
 
     return pos, heading, new_vel, vel_mag, accel, azimuth_angle_roc
