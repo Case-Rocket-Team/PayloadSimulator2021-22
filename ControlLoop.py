@@ -84,7 +84,9 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
     # normalize velocity vector
     horizontal_velocity_magnitude = dist_formula_2d([0, 0], velocity[:2])
 
-    # TODO: CITE TEXTBOOK
+    # the following equation comes from
+    # https://app.knovel.com/web/view/khtml/show.v/rcid:kpPADSMDC1/cid:kt010RIOZ3/viewerType:khtml//root_slug:precision-aerial-delivery/url_slug:gliding-parachute-performance?kpromoter=federation&page=2&view=collapsed&zoom=1
+    # pg 119-120, rewritten to solve for bank angle
     bank_angle = asin(((horizontal_velocity_magnitude * cos(glide_angle)) ** 2)/(9.81 * radius))
 
     # TODO: determine number of waypoints to return
