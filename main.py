@@ -3,6 +3,7 @@ import numpy as np
 from ControlLoop import pure_pursuit, gen_path, plot_path, generate_straight_path, normalize
 from util import graph_data
 import csv
+import math
 
 
 def main():
@@ -10,14 +11,17 @@ def main():
     vel = np.array([-10, 10, -2])
     vel_mag = np.linalg.norm(vel)
     target = [700, 700, 0]
-    heading = [0, 0, 0]
+    heading = [2.00713, 0, 0]
     applied_acceleration = np.zeros(3)
     _mass = 4.249
     _time_step = 1
     look_ahead_distance = 50
 
     path = gen_path(pos, vel, target)
-    plot_path([path])
+
+    velocity_trajectory = []
+    generate_straight_path(pos, 1/2.7, vel*100, normalize(vel), velocity_trajectory)
+    plot_path([path, velocity_trajectory])
 
     sim_kinematics = [[], [], [], []]
 
@@ -32,19 +36,29 @@ def main():
 
         # if pure pursuit returned a blank curve
         if not curve:
+            print("!!!!!!!!!!borken!!!!!!!!!!!!!")
             return True # TODO: Get rid of when program no longer loops
 
             path = gen_path(pos, vel, target)
             continue
 
-        plot_path([path, curve])
+
+        velocity_trajectory = []
+        generate_straight_path(pos, 1/2.7, vel*100, normalize(vel), velocity_trajectory)
+        plot_path([path, curve, velocity_trajectory])
 
         heading[1] = bank_angle
 
         time += _time_step
+
+        print("pos: ", pos, " heading: ", heading, " vel: ", vel, " vel_mag: ", vel_mag)
+
+
         pos, heading, vel, vel_mag, accel, azimuth_angle_roc = simulate_flight(_mass, pos, vel, vel_mag, heading,
                                                                                applied_acceleration, _time_step)
 
+
+        print("pos: ", pos, " heading: ", heading, " vel: ", vel, " vel_mag: ", vel_mag, " accel: ", accel, " azimuth angle roc: ", azimuth_angle_roc)
 
         velocity_trajectory = []
         generate_straight_path(pos, 1/2.7, vel*100, normalize(vel), velocity_trajectory)
@@ -56,7 +70,7 @@ def main():
 
         # calculated by:
         # https://app.knovel.com/web/view/khtml/show.v/rcid:kpPADSMDC1/cid:kt010RIPL3/viewerType:khtml//root_slug:precision-aerial-delivery/url_slug:gliding-parachute-performance?kpromoter=federation&page=46&view=collapsed&zoom=1
-        turn_radius = abs((sqrt(vel[0]**2 + vel[1]**2)/azimuth_angle_roc))
+        turn_radius = abs((math.sqrt(vel[0]**2 + vel[1]**2)/azimuth_angle_roc))
 
         print("Heading", heading[2])
         print("Velocity", vel_mag)
