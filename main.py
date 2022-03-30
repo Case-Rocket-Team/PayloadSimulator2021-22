@@ -8,16 +8,17 @@ import math
 
 def main():
     pos = np.array([0, 0, 5000])
-    vel = np.array([-10, 10, -2])
+    vel = np.array([-11, 11, -1.5])
     vel_mag = np.linalg.norm(vel)
     target = [700, 700, 0]
-    heading = [2.00713, 0, 0]
+    heading = [2.00713, 0, 0.346]
     applied_acceleration = np.zeros(3)
     _mass = 4.249
-    _time_step = 1
-    look_ahead_distance = 50
+    _time_step = 1/10
+    look_ahead_distance = 150
 
     path = gen_path(pos, vel, target)
+    path = path[:3000]
 
     velocity_trajectory = []
     generate_straight_path(pos, 1/2.7, vel*100, normalize(vel), velocity_trajectory)
@@ -34,6 +35,8 @@ def main():
     while pos[2] > 0:
         curve, bank_angle = pure_pursuit(pos, look_ahead_distance, np.ndarray.tolist(vel), path, heading[2])
 
+        print(f"Bank Angle {bank_angle * 180 / math.pi}")
+
         # if pure pursuit returned a blank curve
         if not curve:
             print("!!!!!!!!!!borken!!!!!!!!!!!!!")
@@ -45,7 +48,7 @@ def main():
 
         velocity_trajectory = []
         generate_straight_path(pos, 1/2.7, vel*100, normalize(vel), velocity_trajectory)
-        plot_path([path, curve, velocity_trajectory])
+        # plot_path([path, curve, velocity_trajectory])
 
         heading[1] = bank_angle
 
@@ -63,7 +66,10 @@ def main():
         velocity_trajectory = []
         generate_straight_path(pos, 1/2.7, vel*100, normalize(vel), velocity_trajectory)
 
-        plot_path([path, curve, velocity_trajectory])
+        print(f"Time :{time}")
+        second_step = 2
+        if round(time, 1) % second_step == 0:
+            plot_path([path, curve, velocity_trajectory])
 
         sim_kinematics[0].append(pos)
         sim_kinematics[1].append(heading)

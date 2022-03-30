@@ -14,10 +14,10 @@ _wind_speed_x = 0.0
 _wind_speed_y = 0.0
 _airConditions = {
         #constants
-        'MolarMass': 0.0289652,
+        'MolarMass': 0.0289652,  # kg/mol
         'R': 8.31446,
         'T': 288.15,
-        'L': 0.0065,
+        'L': 0.0065,  # K/m
         'ro': 1.225,
     }
 
@@ -78,6 +78,7 @@ def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep):
 # The following functions are found in:
 # https://drive.google.com/file/d/1t1pA3ntggVvg41jwH3S1QRhRztN0x8_9/view?usp=sharing
 
+
 # Calculates lift force on the vehicle
 def calc_lift_force(_lift_coefficient, air_density, velocity, vehicle_area):
     # L=\frac{1}{2}*C_{L}*\rho*V^{_{2}}*A
@@ -116,7 +117,7 @@ def get_air_density(pos):
     ro = _airConditions['ro']
 
     # \rho =\rho _{0}*e^{-\left (\frac{gMh}{RT_{0}}-\frac{Lh}{T_{0}}  \right )}
-    return ro * math.exp( ((- _gravity * M * pos[2]) / (R * T)) - (L * pos[2] / T) )
+    return ro * math.exp(-((_gravity * M * pos[2]) / (R * T)) - (L * pos[2] / T) )  # TODO: temp lookup table
 
 
 def calc_velocity(current_velocity, glide_angle, azimuth_angle, drag_force, mass, dt):

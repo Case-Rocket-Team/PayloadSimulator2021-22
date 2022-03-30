@@ -20,6 +20,8 @@ def dist_formula_2d(pos, point):
 def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
     # TODO: Last looked is a global variable that is the head of an updated linked list storing the optimal path
     global lastLooked
+    lastLooked = 0
+
     dz_dr = 1 / 2.7
 
     # go from the last point we were looking at to the point closest to the payload
@@ -87,7 +89,11 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
     # the following equation comes from
     # https://app.knovel.com/web/view/khtml/show.v/rcid:kpPADSMDC1/cid:kt010RIOZ3/viewerType:khtml//root_slug:precision-aerial-delivery/url_slug:gliding-parachute-performance?kpromoter=federation&page=2&view=collapsed&zoom=1
     # pg 119-120, rewritten to solve for bank angle
-    bank_angle = asin(((horizontal_velocity_magnitude * cos(glide_angle)) ** 2)/(9.81 * radius))
+
+    # TODO: We were here 03/29
+    bank_angle = asin((horizontal_velocity_magnitude ** 2)/(9.81 * radius))
+
+    print(f"Radius: {radius}, Bank Angle: {bank_angle * 180 / pi}")
 
     # TODO: determine number of waypoints to return
     num_points_created = 10
