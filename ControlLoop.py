@@ -28,8 +28,8 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
     while dist_formula_2d(pos, path[lastLooked + 1]) < dist_formula_2d(pos, path[lastLooked]):
         lastLooked += 1
 
-    acceptable_horizontal_error = look_ahead_distance
-    acceptable_vertical_error = look_ahead_distance * dz_dr
+    acceptable_horizontal_error = look_ahead_distance * 5
+    acceptable_vertical_error = look_ahead_distance * dz_dr * 5
 
     # frac{(x - x_0)^2}{a^2} + frac{(y - y_0)^2}{b^2} + frac{(z - z_0)^2}{c^2} = 1
 
@@ -96,7 +96,7 @@ def pure_pursuit(pos, look_ahead_distance, velocity, path, glide_angle):
     print(f"Radius: {radius}, Bank Angle: {bank_angle * 180 / pi}")
 
     # TODO: determine number of waypoints to return
-    num_points_created = 10
+    num_points_created = 100
     # CREATES WAYPOINTS
 
     waypoints = [0] * num_points_created
@@ -360,7 +360,7 @@ def gen_path(pos, vel, target_loc, turn_radius=147, num_waypoints=1000):
     return path
 
 
-def plot_path(paths):
+def plot_path(*paths):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 

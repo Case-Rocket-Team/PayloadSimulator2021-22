@@ -1,6 +1,6 @@
 from Kinetics import simulate_flight, get_wind_speed
 import numpy as np
-from ControlLoop import pure_pursuit, gen_path, plot_path, generate_straight_path, normalize
+from ControlLoop import pure_pursuit, gen_path, plot_path, generate_straight_path, normalize, dist_formula_2d
 from util import graph_data
 import csv
 import math
@@ -14,15 +14,15 @@ def main():
     heading = [2.00713, 0, 0.346]
     applied_acceleration = np.zeros(3)
     _mass = 4.249
-    _time_step = 1/10
-    look_ahead_distance = 150
+    _time_step = 1/100
+    look_ahead_distance = 500
 
     path = gen_path(pos, vel, target)
-    path = path[:3000]
+    path = path[:2000]
 
     velocity_trajectory = []
     generate_straight_path(pos, 1/2.7, vel*100, normalize(vel), velocity_trajectory)
-    plot_path([path, velocity_trajectory])
+    plot_path(path, velocity_trajectory)
 
     sim_kinematics = [[], [], [], []]
 
@@ -33,7 +33,9 @@ def main():
     time = 0
 
     while pos[2] > 0:
-        curve, bank_angle = pure_pursuit(pos, look_ahead_distance, np.ndarray.tolist(vel), path, heading[2])
+        recalc_step = 1
+        if round(time, 2) % recalc_step == 0:
+            curve, bank_angle = pure_pursuit(pos, look_ahead_distance, np.ndarray.tolist(vel), path, heading[2])
 
         print(f"Bank Angle {bank_angle * 180 / math.pi}")
 
@@ -48,7 +50,7 @@ def main():
 
         velocity_trajectory = []
         generate_straight_path(pos, 1/2.7, vel*100, normalize(vel), velocity_trajectory)
-        # plot_path([path, curve, velocity_trajectory])
+        # plot_path(path, curve, velocity_trajectory)
 
         heading[1] = bank_angle
 
@@ -56,20 +58,26 @@ def main():
 
         print("pos: ", pos, " heading: ", heading, " vel: ", vel, " vel_mag: ", vel_mag)
 
-
         pos, heading, vel, vel_mag, accel, azimuth_angle_roc = simulate_flight(_mass, pos, vel, vel_mag, heading,
                                                                                applied_acceleration, _time_step)
 
-
-        print("pos: ", pos, " heading: ", heading, " vel: ", vel, " vel_mag: ", vel_mag, " accel: ", accel, " azimuth angle roc: ", azimuth_angle_roc)
+        print("pos: ", pos, " heading: ", heading, " vel: ", vel, " vel_mag: ", vel_mag, " accel: ",
+              accel, " azimuth angle roc: ", azimuth_angle_roc)
 
         velocity_trajectory = []
         generate_straight_path(pos, 1/2.7, vel*100, normalize(vel), velocity_trajectory)
 
+        pure_pursuit_trajectory = []
+        pure_pursuit_direction = [curve[-1][x] - pos[x] for x in range(3)]
+        print(f"Curve: {curve[-1]}")
+        print(f"Direction: {normalize(pure_pursuit_direction)}")
+        generate_straight_path(pos, 1 / 2.7, pure_pursuit_direction,
+                               normalize(pure_pursuit_direction), pure_pursuit_trajectory)
+
         print(f"Time :{time}")
         second_step = 2
-        if round(time, 1) % second_step == 0:
-            plot_path([path, curve, velocity_trajectory])
+        if round(time, 2) % second_step == 0:
+            plot_path(path, curve, velocity_trajectory, pure_pursuit_trajectory)
 
         sim_kinematics[0].append(pos)
         sim_kinematics[1].append(heading)
