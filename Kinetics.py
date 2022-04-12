@@ -75,27 +75,32 @@ def simulate_flight( mass, pos, vel, vel_mag, heading, app_accel, timestep):
 
     return pos, heading, new_vel, vel_mag, accel, azimuth_angle_roc
 
-# The following functions are found in:
+# The following function is found in:
 # https://drive.google.com/file/d/1t1pA3ntggVvg41jwH3S1QRhRztN0x8_9/view?usp=sharing
-
 
 # Calculates lift force on the vehicle
 def calc_lift_force(_lift_coefficient, air_density, velocity, vehicle_area):
     # L=\frac{1}{2}*C_{L}*\rho*V^{_{2}}*A
     return 0.5 * _lift_coefficient * air_density * velocity ** 2 * vehicle_area
 
+# The following function is found in:
+# https://drive.google.com/file/d/1t1pA3ntggVvg41jwH3S1QRhRztN0x8_9/view?usp=sharing
 
 # Calculates drag force on the vehicle
 def calc_drag_force(_drag_coefficient, air_density, velocity, vehicle_area):
     # L=\frac{1}{2}*C_{D}*\rho*V^{_{2}}*A
     return 0.5 * _drag_coefficient * air_density * velocity ** 2 * vehicle_area
 
+# The following function is found in:
+# https://drive.google.com/file/d/1t1pA3ntggVvg41jwH3S1QRhRztN0x8_9/view?usp=sharing
 
 # Calculate rate of change of the glide angle
 def calc_roc_glide_angle(lift_force, heading, mass, velocity):
     # \dot{\gamma }=\frac{(L*cos\sigma -W*cos\gamma )}{mV}
     return (lift_force * math.cos(heading[1]) - mass * _gravity * math.cos(heading[2])) / (mass * velocity)
 
+# The following function is found in:
+# https://drive.google.com/file/d/1t1pA3ntggVvg41jwH3S1QRhRztN0x8_9/view?usp=sharing
 
 # Calculate rate of change of the azimuth angle
 def calc_roc_azimuth(lift_force, heading, mass, velocity):
@@ -107,6 +112,9 @@ def calc_roc_azimuth(lift_force, heading, mass, velocity):
 def get_wind_speed(pos):
     return _wind_speed_x, _wind_speed_y
 
+
+# Exponential estimation of air density found here
+# https://en.wikipedia.org/wiki/Density_of_air#Exponential_approximation
 
 # Air density updater, given altitude z gives air density, isothermal
 def get_air_density(pos):
@@ -136,6 +144,9 @@ def calc_velocity(current_velocity, glide_angle, azimuth_angle, drag_force, mass
         vel (Vec3): the calculated next cartesian velocities of the craft
         velocity_mag (float): the magnitude of the next velocities
     """
+
+    # The following function is found in:
+    # https://drive.google.com/file/d/1t1pA3ntggVvg41jwH3S1QRhRztN0x8_9/view?usp=sharing
 
     # Calculate velocity differential
     # - \frac{D + Wsin \gamma}{m} \cdot dt
